@@ -6,5 +6,6 @@
         "tsBuildInfoFile": "./.cache/tsbuildinfo"
     },
     "include": ["./src/**/*"],
+    "exclude": ["./src/**/*.test.ts"],
     "extends": "@confederation/tsconfig/tsconfig.base.json"
 }

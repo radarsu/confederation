@@ -1,0 +1,96 @@
+import { describe, expect, it } from "vitest";
+import { z } from "zod";
+import { createConfig } from "./createConfig.js";
+import { explain } from "./explain.js";
+import { secret } from "./secret.js";
+import type { Source } from "./source.js";
+import { env } from "./sources/env.js";
+
+function fixed(name: string, data: Record<string, unknown>): Source {
+    return { name, load: () => data };
+}
+
+describe("createConfig", () => {
+    it("throws from get() before load()", () => {
+        const handle = createConfig({
+            schema: z.object({ port: z.coerce.number().default(3000) }),
+            sources: [],
+        });
+        expect(() => handle.get()).toThrow(/not loaded/);
+    });
+
+    it("returns the parsed value from load() and caches it for get()", () => {
+        const handle = createConfig({
+            schema: z.object({ port: z.coerce.number().default(3000) }),
+            sources: [fixed("override", { port: "8080" })],
+        });
+        const loaded = handle.load();
+        expect(loaded.port).toBe(8080);
+        expect(handle.get()).toBe(loaded);
+    });
+
+    it("freezes the returned config", () => {
+        const handle = createConfig({
+            schema: z.object({ server: z.object({ port: z.coerce.number().default(3000) }).default({}) }),
+            sources: [],
+        });
+        const loaded = handle.load();
+        expect(Object.isFrozen(loaded)).toBe(true);
+        expect(Object.isFrozen(loaded.server)).toBe(true);
+    });
+
+    it("re-load replaces holder", () => {
+        const handle = createConfig({
+            schema: z.object({ port: z.coerce.number().default(3000) }),
+            sources: [fixed("first", { port: "1111" })],
+        });
+        const first = handle.load();
+        expect(first.port).toBe(1111);
+        const second = handle.load();
+        expect(second.port).toBe(1111);
+        expect(handle.get()).toBe(second);
+    });
+
+    it("lets ZodError propagate from invalid input", () => {
+        const handle = createConfig({
+            schema: z.object({ port: z.coerce.number().int().min(1) }),
+            sources: [fixed("bad", { port: "not-a-number" })],
+        });
+        expect(() => handle.load()).toThrow(z.ZodError);
+    });
+
+    it("end-to-end: schema-derived names, prefix, override, secret + explain", () => {
+        const handle = createConfig({
+            schema: z.object({
+                nodeEnv: z.string(),
+                server: z.object({
+                    port: z.coerce.number().int().meta({ env: "PORT" }),
+                    host: z.string().default("0.0.0.0"),
+                }),
+                database: secret(
+                    z.object({
+                        url: z.string().url(),
+                    }),
+                ),
+            }),
+            sources: [
+                env({
+                    prefix: "APP_",
+                    source: {
+                        APP_NODE_ENV: "production",
+                        PORT: "8080",
+                        APP_SERVER_HOST: "10.0.0.1",
+                        APP_DATABASE_URL: "postgres://user:pass@host/db",
+                    },
+                }),
+            ],
+        });
+        const config = handle.load();
+        expect(config.nodeEnv).toBe("production");
+        expect(config.server.port).toBe(8080);
+        expect(config.server.host).toBe("10.0.0.1");
+        expect(config.database.url).toBe("postgres://user:pass@host/db");
+        expect(explain(config, "database.url").value).toBe("[REDACTED]");
+        expect(explain(config, "server.port").source).toBe("env");
+    });
+});

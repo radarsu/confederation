@@ -18,7 +18,9 @@
     },
     "scripts": {
         "build": "tsc",
-        "watch": "tsc --build --watch"
+        "watch": "tsc --build --watch",
+        "test": "vitest run",
+        "test:watch": "vitest"
     },
     "dependencies": {
         "tslib": "catalog:",
@@ -27,6 +29,7 @@
     "devDependencies": {
         "@confederation/tsconfig": "workspace:*",
         "type-fest": "catalog:",
-        "typescript": "catalog:"
+        "typescript": "catalog:",
+        "vitest": "catalog:"
     }
 }

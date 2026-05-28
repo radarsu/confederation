@@ -31,7 +31,7 @@
         ".env.local": ".env.local.template",
 
         // * Node.js
-        "package.json": ".editorconfig, .gitignore, .npmrc, biome.json, pnpm-workspace.yaml, pnpm-lock.yaml, *.md, tsconfig.json, tsconfig.*.json, turbo.json, LICENSE",
+        "package.json": ".editorconfig, .gitignore, .npmrc, biome.json, pnpm-workspace.yaml, pnpm-lock.yaml, *.md, tsconfig.json, tsconfig.*.json, turbo.json, LICENSE, vitest.config.ts",
 
         // * TypeScript
         "*.js": "$(capture).d.ts, $(capture).js.map, $(capture).d.ts.map"
@@ -55,7 +55,6 @@
     "js/ts.preferences.importModuleSpecifier": "relative",
     "js/ts.preferences.includePackageJsonAutoImports": "on",
     "js/ts.preferences.quoteStyle": "double",
-    "js/ts.tsdk.path": "node_modules/typescript/lib",
     "js/ts.preferences.autoImportSpecifierExcludeRegexes": [
         "^(assert|console|constants|crypto|events|inspector|process|stream|url|v8|vm)$",
         "^(dns|fs|inspector)(\/promises)?$",
