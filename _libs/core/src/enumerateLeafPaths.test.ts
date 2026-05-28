@@ -31,15 +31,6 @@ describe("enumerateLeafPaths", () => {
         expect(paths).toEqual(["server.port"]);
     });
 
-    it("reads meta from the innermost leaf schema", () => {
-        const schema = z.object({
-            port: z.string().meta({ env: "PORT" }).optional(),
-        });
-        const leaves = enumerateLeafPaths(schema);
-        expect(leaves).toHaveLength(1);
-        expect(leaves[0]?.meta).toMatchObject({ env: "PORT" });
-    });
-
     it("returns no leaves for an empty object schema", () => {
         expect(enumerateLeafPaths(z.object({}))).toEqual([]);
     });

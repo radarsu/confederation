@@ -15,25 +15,10 @@ describe("env source", () => {
         expect(result).toEqual({ server: { httpsPort: "8443", host: "0.0.0.0" } });
     });
 
-    it("prepends the prefix to derived names but not to overrides", () => {
-        const schema = z.object({
-            nodeEnv: z.string(),
-            port: z.string().meta({ env: "PORT" }),
-        });
-        const result = env({
-            prefix: "APP_",
-            source: { APP_NODE_ENV: "production", PORT: "8080", APP_PORT: "should-not-win" },
-        }).load({ schema });
-        expect(result).toEqual({ nodeEnv: "production", port: "8080" });
-    });
-
-    it("honors .meta({ env }) override on leaves wrapped in optional/default", () => {
-        const schema = z.object({
-            apiKey: z.string().meta({ env: "API_KEY" }).optional(),
-            timeout: z.coerce.number().meta({ env: "TIMEOUT_MS" }).default(5000),
-        });
-        const result = env({ source: { API_KEY: "secret", TIMEOUT_MS: "1000" } }).load({ schema });
-        expect(result).toEqual({ apiKey: "secret", timeout: "1000" });
+    it("reads bare standards like PORT and DATABASE_URL from top-level schema fields", () => {
+        const schema = z.object({ port: z.string(), databaseUrl: z.string() });
+        const result = env({ source: { PORT: "8080", DATABASE_URL: "postgres://x" } }).load({ schema });
+        expect(result).toEqual({ port: "8080", databaseUrl: "postgres://x" });
     });
 
     it("throws when two leaves derive the same env name", () => {

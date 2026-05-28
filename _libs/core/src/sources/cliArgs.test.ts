@@ -15,14 +15,6 @@ describe("cliArgs source", () => {
         expect(result).toEqual({ server: { httpsPort: "8443", host: "0.0.0.0" } });
     });
 
-    it("honors .meta({ cli }) override", () => {
-        const schema = z.object({
-            verboseLogging: z.string().meta({ cli: "v" }),
-        });
-        const result = cliArgs({ argv: ["--v", "true"] }).load({ schema });
-        expect(result).toEqual({ verboseLogging: "true" });
-    });
-
     it("treats bare --flag as 'true'", () => {
         const schema = z.object({ enabled: z.string() });
         expect(cliArgs({ argv: ["--enabled"] }).load({ schema })).toEqual({ enabled: "true" });

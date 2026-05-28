@@ -24,12 +24,11 @@ export function camelToKebab(value: string): string {
         .toLowerCase();
 }
 
-export function buildEnvNameMap(leaves: LeafDescriptor[], prefix?: string): EnvNameEntry[] {
+export function buildEnvNameMap(leaves: LeafDescriptor[]): EnvNameEntry[] {
     const entries: EnvNameEntry[] = [];
     const seen = new Map<string, string[][]>();
     for (const leaf of leaves) {
-        const override = readStringMeta(leaf.meta, "env");
-        const envName = override ?? `${prefix ?? ""}${leaf.path.map(camelToScreamingSnake).join("_")}`;
+        const envName = leaf.path.map(camelToScreamingSnake).join("_");
         entries.push({ path: leaf.path, envName });
         recordCollision(seen, envName, leaf.path);
     }
@@ -41,21 +40,12 @@ export function buildCliNameMap(leaves: LeafDescriptor[]): CliNameEntry[] {
     const entries: CliNameEntry[] = [];
     const seen = new Map<string, string[][]>();
     for (const leaf of leaves) {
-        const override = readStringMeta(leaf.meta, "cli");
-        const cliName = override ?? leaf.path.map(camelToKebab).join("-");
+        const cliName = leaf.path.map(camelToKebab).join("-");
         entries.push({ path: leaf.path, cliName });
         recordCollision(seen, cliName, leaf.path);
     }
     throwOnCollision(seen, "cli");
     return entries;
-}
-
-function readStringMeta(meta: Record<string, unknown> | undefined, key: string): string | undefined {
-    if (meta === undefined) {
-        return undefined;
-    }
-    const value = meta[key];
-    return typeof value === "string" ? value : undefined;
 }
 
 function recordCollision(seen: Map<string, string[][]>, name: string, path: string[]): void {

@@ -48,16 +48,6 @@ describe("envFile source", () => {
         expect(envFile(path).load({ schema })).toEqual({ server: { port: "8080", host: "0.0.0.0" } });
     });
 
-    it("honors .meta({ env }) absolute override (bypasses prefix)", () => {
-        const path = join(dir, ".env");
-        writeFileSync(path, "PORT=8080\nAPP_NODE_ENV=production\n");
-        const schema = z.object({
-            nodeEnv: z.string(),
-            port: z.string().meta({ env: "PORT" }),
-        });
-        expect(envFile(path, { prefix: "APP_" }).load({ schema })).toEqual({ nodeEnv: "production", port: "8080" });
-    });
-
     it("name includes the path", () => {
         const path = join(dir, "x.env");
         expect(envFile(path).name).toBe(`envFile(${path})`);

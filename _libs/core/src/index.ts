@@ -1,10 +1,6 @@
 export { type ConfigDefinition, type ConfigHandle, createConfig } from "./createConfig.js";
 export { defineConfig } from "./defineConfig.js";
-export { buildCliNameMap, buildEnvNameMap, type CliNameEntry, camelToKebab, camelToScreamingSnake, type EnvNameEntry } from "./deriveName.js";
-export { enumerateLeafPaths, type LeafDescriptor } from "./enumerateLeafPaths.js";
-export { type Explanation, explain } from "./explain.js";
-export { secret } from "./secret.js";
 export type { Source, SourceContext } from "./source.js";
 export { type CliArgsOptions, cliArgs } from "./sources/cliArgs.js";
 export { type EnvOptions, env } from "./sources/env.js";
-export { type EnvFileOptions, envFile } from "./sources/envFile.js";
+export { envFile } from "./sources/envFile.js";

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { buildCliNameMap, buildEnvNameMap, camelToKebab, camelToScreamingSnake } from "./deriveName.js";
 import type { LeafDescriptor } from "./enumerateLeafPaths.js";
 
-function leaf(path: string[], meta?: Record<string, unknown>): LeafDescriptor {
-    return { path, schema: {} as never, meta };
+function leaf(path: string[]): LeafDescriptor {
+    return { path, schema: {} as never };
 }
 
 describe("camelToScreamingSnake", () => {
@@ -39,26 +39,16 @@ describe("camelToKebab", () => {
 });
 
 describe("buildEnvNameMap", () => {
-    it("derives names joined with underscore and prefixed", () => {
-        const result = buildEnvNameMap([leaf(["nodeEnv"]), leaf(["server", "httpsPort"])], "APP_");
+    it("derives names joined with underscore", () => {
+        const result = buildEnvNameMap([leaf(["nodeEnv"]), leaf(["server", "httpsPort"])]);
         expect(result).toEqual([
-            { path: ["nodeEnv"], envName: "APP_NODE_ENV" },
-            { path: ["server", "httpsPort"], envName: "APP_SERVER_HTTPS_PORT" },
+            { path: ["nodeEnv"], envName: "NODE_ENV" },
+            { path: ["server", "httpsPort"], envName: "SERVER_HTTPS_PORT" },
         ]);
-    });
-
-    it("override via meta is absolute (skips prefix)", () => {
-        const result = buildEnvNameMap([leaf(["port"], { env: "PORT" })], "APP_");
-        expect(result).toEqual([{ path: ["port"], envName: "PORT" }]);
     });
 
     it("throws when two paths derive the same name", () => {
         expect(() => buildEnvNameMap([leaf(["databaseUrl"]), leaf(["database", "url"])])).toThrow(/ambiguous env mapping: DATABASE_URL/);
-    });
-
-    it("does not collide when override resolves the conflict", () => {
-        const result = buildEnvNameMap([leaf(["databaseUrl"]), leaf(["database", "url"], { env: "DB_URL" })]);
-        expect(result.map((r) => r.envName)).toEqual(["DATABASE_URL", "DB_URL"]);
     });
 });
 
@@ -69,11 +59,6 @@ describe("buildCliNameMap", () => {
             { path: ["nodeEnv"], cliName: "node-env" },
             { path: ["server", "httpsPort"], cliName: "server-https-port" },
         ]);
-    });
-
-    it("override via meta.cli replaces the whole flag name", () => {
-        const result = buildCliNameMap([leaf(["verboseLogging"], { cli: "v" })]);
-        expect(result).toEqual([{ path: ["verboseLogging"], cliName: "v" }]);
     });
 
     it("throws on collision", () => {

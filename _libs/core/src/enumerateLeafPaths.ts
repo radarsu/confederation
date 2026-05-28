@@ -4,7 +4,6 @@ import { schemaType, unwrapToInner } from "./unwrapSchema.js";
 export interface LeafDescriptor {
     path: string[];
     schema: z.ZodType;
-    meta: Record<string, unknown> | undefined;
 }
 
 export function enumerateLeafPaths(schema: z.ZodType): LeafDescriptor[] {
@@ -29,13 +28,5 @@ function walk(schema: z.ZodType, path: string[], out: LeafDescriptor[]): void {
     if (path.length === 0) {
         return;
     }
-    out.push({ path, schema: inner, meta: readMeta(inner) });
-}
-
-function readMeta(schema: z.ZodType): Record<string, unknown> | undefined {
-    const fn = (schema as unknown as { meta?: () => Record<string, unknown> | undefined }).meta;
-    if (typeof fn !== "function") {
-        return undefined;
-    }
-    return fn.call(schema);
+    out.push({ path, schema: inner });
 }

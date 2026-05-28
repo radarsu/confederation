@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createConfig } from "./createConfig.js";
-import { explain } from "./explain.js";
-import { secret } from "./secret.js";
 import type { Source } from "./source.js";
 import { env } from "./sources/env.js";
 
@@ -59,28 +57,25 @@ describe("createConfig", () => {
         expect(() => handle.load()).toThrow(z.ZodError);
     });
 
-    it("end-to-end: schema-derived names, prefix, override, secret + explain", () => {
+    it("end-to-end: schema-derived names with env source", () => {
         const handle = createConfig({
             schema: z.object({
                 nodeEnv: z.string(),
                 server: z.object({
-                    port: z.coerce.number().int().meta({ env: "PORT" }),
+                    port: z.coerce.number().int(),
                     host: z.string().default("0.0.0.0"),
                 }),
-                database: secret(
-                    z.object({
-                        url: z.string().url(),
-                    }),
-                ),
+                database: z.object({
+                    url: z.string().url(),
+                }),
             }),
             sources: [
                 env({
-                    prefix: "APP_",
                     source: {
-                        APP_NODE_ENV: "production",
-                        PORT: "8080",
-                        APP_SERVER_HOST: "10.0.0.1",
-                        APP_DATABASE_URL: "postgres://user:pass@host/db",
+                        NODE_ENV: "production",
+                        SERVER_PORT: "8080",
+                        SERVER_HOST: "10.0.0.1",
+                        DATABASE_URL: "postgres://user:pass@host/db",
                     },
                 }),
             ],
@@ -90,7 +85,5 @@ describe("createConfig", () => {
         expect(config.server.port).toBe(8080);
         expect(config.server.host).toBe("10.0.0.1");
         expect(config.database.url).toBe("postgres://user:pass@host/db");
-        expect(explain(config, "database.url").value).toBe("[REDACTED]");
-        expect(explain(config, "server.port").source).toBe("env");
     });
 });

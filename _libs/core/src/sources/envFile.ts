@@ -4,11 +4,7 @@ import { enumerateLeafPaths } from "../enumerateLeafPaths.js";
 import { setPath } from "../setPath.js";
 import type { Source } from "../source.js";
 
-export interface EnvFileOptions {
-    prefix?: string;
-}
-
-export function envFile(path: string, options: EnvFileOptions = {}): Source {
+export function envFile(path: string): Source {
     return {
         name: `envFile(${path})`,
         load: ({ schema }) => {
@@ -16,7 +12,7 @@ export function envFile(path: string, options: EnvFileOptions = {}): Source {
                 return {};
             }
             const parsed = parseEnvFile(readFileSync(path, "utf8"));
-            const entries = buildEnvNameMap(enumerateLeafPaths(schema), options.prefix);
+            const entries = buildEnvNameMap(enumerateLeafPaths(schema));
             const result: Record<string, unknown> = {};
             for (const entry of entries) {
                 const value = parsed.get(entry.envName);
