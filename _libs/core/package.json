@@ -1,0 +1,32 @@
+{
+    "name": "@confederation/core",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "exports": {
+        "./index.js": {
+            "types": "./dist/index.d.ts",
+            "import": {
+                "@confederation/src": "./src/index.ts",
+                "default": "./dist/index.js"
+            },
+            "require": {
+                "@confederation/src": "./src/index.ts",
+                "default": "./dist/index.js"
+            }
+        }
+    },
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --build --watch"
+    },
+    "dependencies": {
+        "tslib": "catalog:",
+        "zod": "catalog:"
+    },
+    "devDependencies": {
+        "@confederation/tsconfig": "workspace:*",
+        "type-fest": "catalog:",
+        "typescript": "catalog:"
+    }
+}
