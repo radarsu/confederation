@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "baseUrl": "./",
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "skipLibCheck": true,
+        "tsBuildInfoFile": "./.cache/tsbuildinfo"
+    },
+    "include": ["./src/**/*"],
+    "exclude": ["./src/**/*.test.ts"],
+    "extends": "@confederation/tsconfig/tsconfig.base.json",
+    "references": [{ "path": "../core" }]
+}

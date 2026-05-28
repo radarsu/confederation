@@ -1,9 +1,10 @@
-import type { z } from "zod";
-import { schemaType, unwrapToInner } from "./unwrapSchema.js";
+import { z } from "zod";
+import { schemaType, unwrapSchema, unwrapToInner } from "./unwrapSchema.js";
 
 export interface LeafDescriptor {
     path: string[];
     schema: z.ZodType;
+    meta: Record<string, unknown> | undefined;
 }
 
 export function enumerateLeafPaths(schema: z.ZodType): LeafDescriptor[] {
@@ -28,5 +29,21 @@ function walk(schema: z.ZodType, path: string[], out: LeafDescriptor[]): void {
     if (path.length === 0) {
         return;
     }
-    out.push({ path, schema: inner });
+    out.push({ path, schema: inner, meta: collectMeta(schema) });
+}
+
+function collectMeta(schema: z.ZodType): Record<string, unknown> | undefined {
+    let merged: Record<string, unknown> | undefined;
+    let current: z.ZodType = schema;
+    while (true) {
+        const meta = z.globalRegistry.get(current);
+        if (meta !== undefined) {
+            merged = { ...meta, ...(merged ?? {}) };
+        }
+        const inner = unwrapSchema(current);
+        if (inner === undefined) {
+            return merged;
+        }
+        current = inner;
+    }
 }

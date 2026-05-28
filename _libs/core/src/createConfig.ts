@@ -1,4 +1,6 @@
 import type { z } from "zod";
+import { decryptSecretsInPlace } from "./crypto/decryptInPlace.js";
+import { type DecryptOptions, resolvePrivateKey } from "./crypto/resolveKey.js";
 import { deepFreeze } from "./freeze.js";
 import { mergeSources } from "./merge.js";
 import type { Source } from "./source.js";
@@ -6,6 +8,7 @@ import type { Source } from "./source.js";
 export interface ConfigDefinition<S extends z.ZodType> {
     schema: S;
     sources: Source[];
+    decrypt?: DecryptOptions;
 }
 
 export interface ConfigHandle<S extends z.ZodType> {
@@ -18,6 +21,9 @@ export function createConfig<S extends z.ZodType>(definition: ConfigDefinition<S
     return {
         load(): z.infer<S> {
             const merged = mergeSources(definition.sources, definition.schema);
+            if (definition.decrypt?.disabled !== true) {
+                decryptSecretsInPlace(merged, definition.schema, () => resolvePrivateKey(definition.decrypt));
+            }
             const parsed = definition.schema.parse(merged) as z.infer<S>;
             const frozen = deepFreeze(parsed);
             holder = frozen;

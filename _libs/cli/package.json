@@ -1,0 +1,34 @@
+{
+    "name": "@confederation/cli",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "bin": {
+        "confederation": "./dist/bin.js"
+    },
+    "exports": {
+        "./bin.js": {
+            "types": "./dist/bin.d.ts",
+            "import": {
+                "@confederation/src": "./src/bin.ts",
+                "default": "./dist/bin.js"
+            }
+        }
+    },
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --build --watch",
+        "test": "vitest run",
+        "test:watch": "vitest"
+    },
+    "dependencies": {
+        "@confederation/core": "workspace:*",
+        "@stricli/core": "catalog:",
+        "tslib": "catalog:"
+    },
+    "devDependencies": {
+        "@confederation/tsconfig": "workspace:*",
+        "typescript": "catalog:",
+        "vitest": "catalog:"
+    }
+}

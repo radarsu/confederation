@@ -23,6 +23,7 @@
         "test:watch": "vitest"
     },
     "dependencies": {
+        "@noble/post-quantum": "catalog:",
         "tslib": "catalog:",
         "zod": "catalog:"
     },

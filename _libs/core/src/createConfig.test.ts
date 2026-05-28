@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createConfig } from "./createConfig.js";
+import { encrypt } from "./crypto/encrypt.js";
+import { generateKeypair } from "./crypto/keygen.js";
 import type { Source } from "./source.js";
 import { cliArgs } from "./sources/cliArgs.js";
 import { env } from "./sources/env.js";
@@ -101,5 +103,55 @@ describe("createConfig", () => {
         const config = handle.load();
         expect(config.server.port).toBe(2222);
         expect(config.server.host).toBe("127.0.0.1");
+    });
+
+    it("auto-decrypts secret leaves with the configured private key", () => {
+        const { publicKey, privateKey } = generateKeypair();
+        const handle = createConfig({
+            schema: z.object({
+                database: z.object({
+                    url: z.string().meta({ secret: true }),
+                }),
+            }),
+            sources: [
+                env({
+                    source: { DATABASE_URL: encrypt("postgres://user:pass@host/db", publicKey) },
+                }),
+            ],
+            decrypt: { privateKey },
+        });
+        const config = handle.load();
+        expect(config.database.url).toBe("postgres://user:pass@host/db");
+    });
+
+    it("passes plaintext secret values through to the schema unchanged", () => {
+        const { privateKey } = generateKeypair();
+        const handle = createConfig({
+            schema: z.object({ password: z.string().meta({ secret: true }) }),
+            sources: [fixed("plain", { password: "still-plain" })],
+            decrypt: { privateKey },
+        });
+        expect(handle.load().password).toBe("still-plain");
+    });
+
+    it("throws when a ciphertext is present and decrypt is disabled (Zod sees the envelope)", () => {
+        const { publicKey } = generateKeypair();
+        const handle = createConfig({
+            schema: z.object({ password: z.string().min(50).meta({ secret: true }) }),
+            sources: [fixed("encrypted", { password: encrypt("hi", publicKey) })],
+            decrypt: { disabled: true },
+        });
+        const config = handle.load();
+        expect(config.password.startsWith("encrypted:v1:")).toBe(true);
+    });
+
+    it("throws when a ciphertext is present but no private key can be resolved", () => {
+        const { publicKey } = generateKeypair();
+        const handle = createConfig({
+            schema: z.object({ password: z.string().meta({ secret: true }) }),
+            sources: [fixed("encrypted", { password: encrypt("hi", publicKey) })],
+            decrypt: { privateKeyPath: "/nonexistent/path/that/does/not/exist.key" },
+        });
+        expect(() => handle.load()).toThrow(/Cannot decrypt secret at path "password"/);
     });
 });
