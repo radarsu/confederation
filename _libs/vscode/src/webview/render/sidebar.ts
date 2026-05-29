@@ -1,11 +1,13 @@
-import type { DirView } from "../../shared/protocol.js";
+import type { BadgeStatus, DirView } from "../../shared/protocol.js";
 import { h } from "../dom.js";
+import { type IconName, icon } from "../icons.js";
 import type { AppState } from "../state.js";
-import { BADGE_ICON } from "./status.js";
+
+const BADGE_ICONS: Record<BadgeStatus, IconName> = { ok: "check", warn: "warn", error: "alert", none: "dot" };
 
 export function renderSidebar(state: AppState): HTMLElement {
+    const sidebar = h("nav", { class: "sidebar", "aria-label": "Services" }, [h("div", { class: "sidebar-title", text: "Services" })]);
     const landscape = state.landscape;
-    const sidebar = h("nav", { class: "sidebar", "aria-label": "Environment files" });
     if (landscape === undefined) {
         return sidebar;
     }
@@ -20,9 +22,10 @@ export function renderSidebar(state: AppState): HTMLElement {
 }
 
 function renderDir(state: AppState, dir: DirView): HTMLElement {
-    const header = h("div", { class: `dir-header badge-${dir.badge}` }, [
-        h("span", { class: `badge badge-${dir.badge}`, text: BADGE_ICON[dir.badge], title: dir.badge }),
-        h("span", { class: "dir-label", text: dir.label, title: dir.dirId }),
+    const header = h("div", { class: "service" }, [
+        h("span", { class: "service-icon" }, [icon("box")]),
+        h("span", { class: "service-label", text: dir.label, title: dir.dirId }),
+        statusIcon(dir.badge),
     ]);
     const files = dir.fileIds.map((fileId) => renderFile(state, fileId));
     return h("section", { class: "dir" }, [header, ...files]);
@@ -34,9 +37,13 @@ function renderFile(state: AppState, fileId: string): HTMLElement {
         return h("div");
     }
     const selected = state.selectedFileId === fileId;
-    return h("button", { class: `file-item badge-${file.badge}${selected ? " selected" : ""}`, "data-action": "select-file", "data-file": fileId }, [
-        h("span", { class: `badge badge-${file.badge}`, text: BADGE_ICON[file.badge] }),
+    return h("button", { class: `file-item${selected ? " selected" : ""}`, "data-action": "select-file", "data-file": fileId }, [
+        statusIcon(file.badge),
         h("span", { class: "file-name", text: file.fileName }),
         file.dirty ? h("span", { class: "dirty-dot", title: "Unsaved changes", text: "●" }) : undefined,
     ]);
+}
+
+function statusIcon(badge: BadgeStatus): HTMLElement {
+    return h("span", { class: `status-icon status-${badge}` }, [icon(BADGE_ICONS[badge])]);
 }

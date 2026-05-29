@@ -8,7 +8,8 @@
         "clear": "find . \\( -name 'node_modules' -or -name '.cache' -or -name 'dist' -or -name '.turbo' -or -name 'pnpm-lock.yaml' \\) -exec rm -rf '{}' +",
         "cache:clear": "find . \\( -name '.cache' -or -name 'dist' -or -name '.turbo' \\) -exec rm -rf '{}' +",
         "deps:up": "pnpm --recursive update --latest",
-        "libs:watch": "nice -n 15 tsc --build --watch --preserveWatchOutput tsconfig.libs.json"
+        "libs:watch": "nice -n 15 tsc --build --watch --preserveWatchOutput tsconfig.libs.json",
+        "dev": "code /home/radarsu/radarsu/repositories/confederation/_libs/vscode"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",

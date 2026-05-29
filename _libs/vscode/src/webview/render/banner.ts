@@ -1,4 +1,5 @@
 import { h } from "../dom.js";
+import { icon } from "../icons.js";
 import type { AppState } from "../state.js";
 
 export function renderBanner(state: AppState): HTMLElement {
@@ -12,17 +13,22 @@ export function renderBanner(state: AppState): HTMLElement {
     const dirtyCount = files.filter((file) => file.dirty).length;
     const services = new Set(landscape.matrix.map((section) => section.service)).size;
 
-    const summary =
-        missing === 0 && invalid === 0
-            ? `All required variables present across ${services} service${services === 1 ? "" : "s"}.`
-            : `${missing} missing, ${invalid} invalid across ${services} service${services === 1 ? "" : "s"}.`;
+    const ok = missing === 0 && invalid === 0;
+    const title = ok ? "All required variables present" : `${missing} missing required variable${missing === 1 ? "" : "s"}`;
+    const detail = `${invalid} invalid across ${services} service${services === 1 ? "" : "s"}.`;
 
-    const tone = missing > 0 || invalid > 0 ? "error" : "ok";
+    const message = h("div", { class: "banner-message" }, [
+        h("span", { class: "banner-title", text: title }),
+        h("span", { class: "banner-detail", text: detail }),
+    ]);
     const actions = h("div", { class: "banner-actions" }, [
         h("button", { class: "btn", "data-action": "save-all", title: "Save all changed .env files" }, [
             `Save all${dirtyCount > 0 ? ` (${dirtyCount})` : ""}`,
         ]),
     ]);
-
-    return h("header", { class: "banner" }, [h("div", { class: `summary summary-${tone}`, text: summary }), actions]);
+    return h("header", { class: `banner banner-${ok ? "ok" : "error"}` }, [
+        h("span", { class: "banner-icon" }, [icon(ok ? "check" : "alert")]),
+        message,
+        actions,
+    ]);
 }

@@ -1,5 +1,6 @@
 import type { FileView, VarRow, VarStatus } from "../../shared/protocol.js";
 import { h } from "../dom.js";
+import { icon } from "../icons.js";
 import { type AppState, revealKey } from "../state.js";
 import { STATUS_ICON, STATUS_LABEL } from "./status.js";
 
@@ -23,15 +24,41 @@ export function renderGrid(state: AppState, file: FileView): HTMLElement {
         return container;
     }
 
-    let currentGroup: string | undefined;
+    const groups = new Map<string, VarRow[]>();
+    const order: string[] = [];
     for (const row of rows) {
-        if (row.group !== currentGroup) {
-            currentGroup = row.group;
-            container.append(h("div", { class: "group-header", text: currentGroup === "" ? "(top level)" : currentGroup }));
+        const existing = groups.get(row.group);
+        if (existing === undefined) {
+            groups.set(row.group, [row]);
+            order.push(row.group);
+        } else {
+            existing.push(row);
         }
-        container.append(renderRow(state, file.fileId, row));
+    }
+    for (const group of order) {
+        container.append(renderCard(state, file.fileId, group, groups.get(group) ?? []));
     }
     return container;
+}
+
+function renderCard(state: AppState, fileId: string, group: string, rows: VarRow[]): HTMLElement {
+    const header = h("div", { class: "card-header" }, [
+        h("span", { class: "card-icon" }, [icon("info")]),
+        h("span", { class: "card-title", text: group === "" ? "Top level" : group }),
+    ]);
+    const body = h(
+        "div",
+        { class: "card-body" },
+        rows.map((row) => renderRow(state, fileId, row)),
+    );
+    return h("section", { class: `card ${cardTone(rows)}` }, [header, body]);
+}
+
+function cardTone(rows: VarRow[]): string {
+    if (rows.some((row) => ERROR_STATUSES.has(row.status))) {
+        return "error";
+    }
+    return rows.some((row) => row.status === "unknown") ? "warn" : "";
 }
 
 function renderGridHeader(file: FileView): HTMLElement {
@@ -42,7 +69,7 @@ function renderGridHeader(file: FileView): HTMLElement {
         file.dirty ? h("button", { class: "btn", "data-action": "save", "data-file": file.fileId }, ["Save"]) : undefined,
         h("button", { class: "btn btn-ghost", "data-action": "open-text", "data-file": file.fileId, title: "Open as plain text" }, ["Plain text"]),
     ]);
-    return h("div", { class: "grid-header" }, [h("div", { class: "grid-title", text: file.fileId }), actions]);
+    return h("div", { class: "grid-header" }, [actions]);
 }
 
 function renderRow(state: AppState, fileId: string, row: VarRow): HTMLElement {

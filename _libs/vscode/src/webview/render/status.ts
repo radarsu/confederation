@@ -1,4 +1,4 @@
-import type { BadgeStatus, VarStatus } from "../../shared/protocol.js";
+import type { VarStatus } from "../../shared/protocol.js";
 
 export const STATUS_LABEL: Record<VarStatus, string> = {
     ok: "OK",
@@ -20,11 +20,4 @@ export const STATUS_ICON: Record<VarStatus, string> = {
     "secret-encrypted": "🔒",
     "secret-plaintext": "⚠",
     "no-schema": "",
-};
-
-export const BADGE_ICON: Record<BadgeStatus, string> = {
-    ok: "✓",
-    warn: "!",
-    error: "✕",
-    none: "·",
 };

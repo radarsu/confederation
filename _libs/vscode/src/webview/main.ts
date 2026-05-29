@@ -2,6 +2,7 @@ import "./styles.css";
 import type { HostToWebview } from "../shared/protocol.js";
 import { send, vscode } from "./api.js";
 import { clear, h } from "./dom.js";
+import { icon } from "./icons.js";
 import { renderBanner } from "./render/banner.js";
 import { renderGrid } from "./render/grid.js";
 import { renderMatrix } from "./render/matrix.js";
@@ -218,13 +219,16 @@ function renderMain(): HTMLElement {
 function renderToolbar(): HTMLElement {
     const tab = (mode: ViewMode, label: string): HTMLElement =>
         h("button", { class: `tab${state.mode === mode ? " active" : ""}`, "data-action": "tab", "data-mode": mode }, [label]);
-    const filter = h("input", {
-        class: "filter",
-        type: "search",
-        placeholder: "Filter variables…",
-        value: state.filter,
-        "data-action": "filter",
-        spellcheck: "false",
-    });
+    const filter = h("div", { class: "search" }, [
+        h("span", { class: "search-icon" }, [icon("search")]),
+        h("input", {
+            class: "filter",
+            type: "search",
+            placeholder: "Filter variables…",
+            value: state.filter,
+            "data-action": "filter",
+            spellcheck: "false",
+        }),
+    ]);
     return h("div", { class: "toolbar" }, [h("div", { class: "tabs" }, [tab("grid", "File"), tab("matrix", "Overview")]), filter]);
 }
