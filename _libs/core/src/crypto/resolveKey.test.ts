@@ -4,13 +4,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { base64urlDecode } from "./format.js";
 import { generateKeypair } from "./keygen.js";
-import {
-    PUBLIC_KEY_PATH,
-    defaultPrivateKeyPath,
-    resolveProjectName,
-    resolvePrivateKey,
-    resolvePublicKey,
-} from "./resolveKey.js";
+import { defaultPrivateKeyPath, PUBLIC_KEY_PATH, resolvePrivateKey, resolveProjectName, resolvePublicKey } from "./resolveKey.js";
 
 let dir: string;
 const savedEnv = { ...process.env };

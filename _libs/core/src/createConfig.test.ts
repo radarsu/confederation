@@ -69,7 +69,7 @@ describe("createConfig", () => {
                     host: z.string().default("0.0.0.0"),
                 }),
                 database: z.object({
-                    url: z.string().url(),
+                    url: z.url(),
                 }),
             }),
             sources: [

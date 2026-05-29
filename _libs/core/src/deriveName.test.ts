@@ -3,7 +3,7 @@ import { buildCliNameMap, buildEnvNameMap, camelToKebab, camelToScreamingSnake }
 import type { LeafDescriptor } from "./enumerateLeafPaths.js";
 
 function leaf(path: string[]): LeafDescriptor {
-    return { path, schema: {} as never, meta: undefined };
+    return { path, schema: {} as never, outer: {} as never, meta: undefined };
 }
 
 describe("camelToScreamingSnake", () => {

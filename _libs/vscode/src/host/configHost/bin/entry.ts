@@ -1,0 +1,90 @@
+import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
+import type { ConfigHostRequest, ConfigHostResponse } from "../protocol.js";
+
+// Runs as a forked Node 24 process (never the extension host). It evaluates the user's
+// confederation.config.* via Node's native TS type-stripping and answers introspect/validate
+// over the fork IPC channel. @confederation/core and the user's config are resolved relative to
+// the config file so they share one zod instance (so `.meta({secret})` registry lookups resolve).
+
+interface CoreApi {
+    inspectSchema: (schema: unknown) => unknown;
+    validateValues: (schema: unknown, values: Record<string, string>) => unknown;
+}
+
+interface Definition {
+    schema: unknown;
+}
+
+const configPath = process.argv[2];
+let loaded: { core: CoreApi; definition: Definition } | undefined;
+
+process.on("message", (raw: ConfigHostRequest) => {
+    void handle(raw).then((response) => {
+        process.send?.(response);
+    });
+});
+
+async function handle(request: ConfigHostRequest): Promise<ConfigHostResponse> {
+    try {
+        if (request.op === "ping") {
+            return { id: request.id, ok: true, op: "ping" };
+        }
+        const { core, definition } = await load();
+        if (request.op === "introspect") {
+            return { id: request.id, ok: true, op: "introspect", descriptors: core.inspectSchema(definition.schema) as never };
+        }
+        return { id: request.id, ok: true, op: "validate", report: core.validateValues(definition.schema, request.values) as never };
+    } catch (cause) {
+        const error = cause as Error & { code?: string };
+        return {
+            id: request.id,
+            ok: false,
+            op: request.op,
+            error: { kind: error.code ?? "error", message: error.message, ...(error.stack !== undefined ? { stack: error.stack } : {}) },
+        };
+    }
+}
+
+async function load(): Promise<{ core: CoreApi; definition: Definition }> {
+    if (loaded !== undefined) {
+        return loaded;
+    }
+    if (configPath === undefined) {
+        throw new Error("config-host: no config path provided");
+    }
+    const configUrl = pathToFileURL(configPath);
+    const require = createRequire(configUrl);
+    const coreUrl = pathToFileURL(require.resolve("@confederation/core/index.js")).href;
+    const core = (await import(coreUrl)) as unknown as CoreApi;
+    const module = (await import(configUrl.href)) as Record<string, unknown>;
+    loaded = { core, definition: extractDefinition(module) };
+    return loaded;
+}
+
+function extractDefinition(module: Record<string, unknown>): Definition {
+    const candidate = module["default"] ?? module["config"] ?? module["definition"];
+    if (isDefinition(candidate)) {
+        return candidate;
+    }
+    if (isZodSchema(candidate)) {
+        return { schema: candidate };
+    }
+    if (isZodSchema(module["schema"])) {
+        return { schema: module["schema"] };
+    }
+    throw new Error(
+        "confederation.config must export a ConfigDefinition (default, `config`, or `definition`) with a `schema`, or a bare zod `schema` export.",
+    );
+}
+
+function isDefinition(value: unknown): value is Definition {
+    return typeof value === "object" && value !== null && isZodSchema((value as { schema?: unknown }).schema);
+}
+
+function isZodSchema(value: unknown): boolean {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+    return "_zod" in value || typeof (value as { safeParse?: unknown }).safeParse === "function";
+}

@@ -39,9 +39,7 @@ export function resolvePrivateKey(options?: DecryptOptions): Uint8Array {
     if (existsSync(defaultPath)) {
         return readPrivateKeyFile(defaultPath);
     }
-    throw new Error(
-        `No private key found. Set CONFEDERATION_PRIVATE_KEY env var, CONFEDERATION_PRIVATE_KEY_FILE, or place key at ${defaultPath}.`,
-    );
+    throw new Error(`No private key found. Set CONFEDERATION_PRIVATE_KEY env var, CONFEDERATION_PRIVATE_KEY_FILE, or place key at ${defaultPath}.`);
 }
 
 export function defaultPrivateKeyPath(cwd: string): string {

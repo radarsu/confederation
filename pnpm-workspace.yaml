@@ -9,6 +9,8 @@ catalog:
   '@noble/post-quantum': 0.6.1
   '@stricli/core': 1.2.7
   '@types/node': 25.5.2
+  '@types/vscode': 1.96.0
+  esbuild: 0.28.0
   knip: 6.2.0
   tslib: 2.8.1
   turbo: 2.9.16

@@ -1,5 +1,5 @@
-import { ml_kem512 } from "@noble/post-quantum/ml-kem.js";
 import { createCipheriv, randomBytes } from "node:crypto";
+import { ml_kem512 } from "@noble/post-quantum/ml-kem.js";
 import { base64urlDecode, encodeEnvelope } from "./format.js";
 
 export function encrypt(plaintext: string, publicKey: string | Uint8Array): string {

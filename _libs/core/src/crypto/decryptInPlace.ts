@@ -4,11 +4,7 @@ import { setPath } from "../setPath.js";
 import { decrypt } from "./decrypt.js";
 import { getPath } from "./getPath.js";
 
-export function decryptSecretsInPlace(
-    record: Record<string, unknown>,
-    schema: z.ZodType,
-    resolveKey: () => Uint8Array,
-): void {
+export function decryptSecretsInPlace(record: Record<string, unknown>, schema: z.ZodType, resolveKey: () => Uint8Array): void {
     const secretLeaves = enumerateLeafPaths(schema).filter((leaf) => leaf.meta?.["secret"] === true);
     let key: Uint8Array | undefined;
     for (const leaf of secretLeaves) {

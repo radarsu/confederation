@@ -16,10 +16,7 @@ describe("mergeSources", () => {
     });
 
     it("deep-merges nested objects", () => {
-        const merged = mergeSources(
-            [src("a", { server: { host: "0.0.0.0", port: "1" } }), src("b", { server: { port: "2" } })],
-            placeholderSchema,
-        );
+        const merged = mergeSources([src("a", { server: { host: "0.0.0.0", port: "1" } }), src("b", { server: { port: "2" } })], placeholderSchema);
         expect(merged).toEqual({ server: { host: "0.0.0.0", port: "2" } });
     });
 

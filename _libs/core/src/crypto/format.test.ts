@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodeEnvelope, encodeEnvelope, ENVELOPE_PREFIX, GCM_TAG_LEN, isEnvelope, KEM_CT_LEN, NONCE_LEN } from "./format.js";
+import { decodeEnvelope, ENVELOPE_PREFIX, encodeEnvelope, GCM_TAG_LEN, isEnvelope, KEM_CT_LEN, NONCE_LEN } from "./format.js";
 
 function bytes(len: number, fill = 1): Uint8Array {
     return new Uint8Array(len).fill(fill);
