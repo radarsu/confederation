@@ -1,11 +1,16 @@
 {
-    "name": "@confederation/vscode",
+    "name": "confederation",
     "version": "0.0.0",
-    "private": true,
+    "license": "MIT",
     "type": "module",
     "displayName": "Confederation Env Manager",
     "description": "Manage .env files against confederation.config schemas with validation, encryption, and a cross-service overview.",
     "publisher": "confederation",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radarsu/confederation.git",
+        "directory": "_libs/vscode"
+    },
     "main": "./dist/extension.cjs",
     "engines": {
         "vscode": "^1.96.0",
@@ -109,15 +114,14 @@
         "test": "vitest run",
         "test:watch": "vitest"
     },
-    "dependencies": {
-        "@confederation/core": "workspace:*",
-        "tslib": "catalog:"
-    },
     "devDependencies": {
+        "@confederation/core": "workspace:*",
         "@confederation/tsconfig": "workspace:*",
         "@types/node": "catalog:",
-        "@types/vscode": "catalog:",
+        "@types/vscode": "1.96.0",
+        "@vscode/vsce": "catalog:",
         "esbuild": "catalog:",
+        "tslib": "catalog:",
         "typescript": "catalog:",
         "vitest": "catalog:",
         "zod": "catalog:"

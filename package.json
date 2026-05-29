@@ -3,7 +3,13 @@
     "version": "0.0.0",
     "private": true,
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/radarsu/confederation.git"
+    },
     "scripts": {
+        "build": "turbo run build",
+        "test": "turbo run test",
         "diff:stat": "git diff HEAD --shortstat",
         "clear": "find . \\( -name 'node_modules' -or -name '.cache' -or -name 'dist' -or -name '.turbo' -or -name 'pnpm-lock.yaml' \\) -exec rm -rf '{}' +",
         "cache:clear": "find . \\( -name '.cache' -or -name 'dist' -or -name '.turbo' \\) -exec rm -rf '{}' +",

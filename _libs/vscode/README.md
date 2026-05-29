@@ -1,4 +1,4 @@
-# @confederation/vscode
+# confederation
 
 A VSCode extension that turns `.env` files into a managed, validated UI driven by your
 [`@confederation/core`](../core) configuration schema.
@@ -67,8 +67,8 @@ host (never the webview) and requires a configured private key.
 
 ```sh
 pnpm --filter @confederation/core build      # the extension bundles core's dist
-pnpm --filter @confederation/vscode build    # esbuild -> dist/, then tsc typecheck
-pnpm --filter @confederation/vscode test     # vitest (pure logic + subprocess integration)
+pnpm --filter confederation build    # esbuild -> dist/, then tsc typecheck
+pnpm --filter confederation test     # vitest (pure logic + subprocess integration)
 ```
 
 Press <kbd>F5</kbd> with `_libs/vscode` open (configuration **Run Env Manager (fixtures)**) to

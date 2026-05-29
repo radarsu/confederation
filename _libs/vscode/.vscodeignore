@@ -1,0 +1,11 @@
+.cache/**
+.turbo/**
+.vscode/**
+fixtures/**
+src/**
+node_modules/**
+*.vsix
+esbuild.config.mjs
+tsconfig.json
+tsconfig.webview.json
+vitest.config.ts
