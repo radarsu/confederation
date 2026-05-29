@@ -2,9 +2,10 @@ import * as vscode from "vscode";
 import { ConfigHostManager } from "./host/configHost/manager.js";
 import { usesConfederation } from "./host/detectConfederation.js";
 import { scanWorkspace } from "./host/discovery/scan.js";
+import { encryptAllSecrets } from "./host/editor/encryptAllSecrets.js";
 import { EnvEditorProvider } from "./host/editor/envEditorProvider.js";
 import { LandscapeService } from "./host/editor/landscapeService.js";
-import { isEnvUri } from "./host/editor/uris.js";
+import { isEnvUri, relativeId } from "./host/editor/uris.js";
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     const entryPath = vscode.Uri.joinPath(context.extensionUri, "dist", "configHost.mjs").fsPath;
@@ -23,6 +24,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }),
         vscode.commands.registerCommand("confederation.openEnvManager", openEnvManager),
         vscode.commands.registerCommand("confederation.openAsPlainText", openAsPlainText),
+        vscode.commands.registerCommand("confederation.encryptAllSecrets", () => encryptAllSecretsCommand(landscape)),
         vscode.workspace.onDidChangeWorkspaceFolders(() => void updateContext()),
     );
 
@@ -59,6 +61,20 @@ function openAsPlainText(): void {
     if (uri !== undefined) {
         void vscode.commands.executeCommand("vscode.openWith", uri, "default");
     }
+}
+
+async function encryptAllSecretsCommand(landscape: LandscapeService): Promise<void> {
+    const uri = activeTabUri();
+    if (uri === undefined || !isEnvUri(uri)) {
+        void vscode.window.showInformationMessage("Open a .env file first, then run “Confederation: Encrypt All Plaintext Secrets”.");
+        return;
+    }
+    const folder = vscode.workspace.getWorkspaceFolder(uri);
+    if (folder === undefined) {
+        return;
+    }
+    const count = await encryptAllSecrets(landscape, folder, relativeId(folder, uri));
+    void vscode.window.showInformationMessage(`Encrypted ${count} secret${count === 1 ? "" : "s"}.`);
 }
 
 function activeTabUri(): vscode.Uri | undefined {

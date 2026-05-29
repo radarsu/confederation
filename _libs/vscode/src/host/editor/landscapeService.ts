@@ -1,13 +1,10 @@
 import { dirname } from "node:path";
-import type { LeafDescriptorPublic } from "@confederation/core/index.js";
+import { associateConfigs, baseName, dirOf, type LeafDescriptorPublic, listEntries, parseEnv } from "@confederation/core/index.js";
 import * as vscode from "vscode";
 import type { Landscape } from "../../shared/protocol.js";
 import type { ConfigHostManager } from "../configHost/manager.js";
-import { associateConfigs } from "../discovery/associate.js";
-import { baseName, dirOf } from "../discovery/paths.js";
 import { scanWorkspace } from "../discovery/scan.js";
 import { buildLandscape, type FileInput } from "../model/buildLandscape.js";
-import { listEntries, parseEnv } from "./envText.js";
 import { readText, toUri } from "./uris.js";
 
 type DescriptorResult = LeafDescriptorPublic[] | { error: string };

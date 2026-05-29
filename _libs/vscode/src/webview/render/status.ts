@@ -1,4 +1,4 @@
-import type { VarStatus } from "../../shared/protocol.js";
+import type { VarStatus } from "@confederation/core/index.js";
 
 export const STATUS_LABEL: Record<VarStatus, string> = {
     ok: "OK",

@@ -53,6 +53,11 @@
                 "command": "confederation.openAsPlainText",
                 "title": "Open .env as Plain Text",
                 "category": "Confederation"
+            },
+            {
+                "command": "confederation.encryptAllSecrets",
+                "title": "Encrypt All Plaintext Secrets",
+                "category": "Confederation"
             }
         ],
         "menus": {
@@ -63,6 +68,10 @@
                 },
                 {
                     "command": "confederation.rescan",
+                    "when": "confederation.isConfederationRepo"
+                },
+                {
+                    "command": "confederation.encryptAllSecrets",
                     "when": "confederation.isConfederationRepo"
                 }
             ]

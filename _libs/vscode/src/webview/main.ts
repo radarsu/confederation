@@ -128,6 +128,11 @@ function onClick(event: MouseEvent): void {
                 send({ type: "addAllMissing", fileId: file });
             }
             return;
+        case "encrypt-all-secrets":
+            if (file !== undefined) {
+                send({ type: "encryptAllSecrets", fileId: file });
+            }
+            return;
         case "save":
             if (file !== undefined) {
                 send({ type: "saveFile", fileId: file });

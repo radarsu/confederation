@@ -4,7 +4,7 @@ import { setPath } from "../setPath.js";
 import type { Source } from "../source.js";
 
 export interface EnvOptions {
-    source?: NodeJS.ProcessEnv;
+    source?: Record<string, string | undefined>;
 }
 
 export function env(options: EnvOptions = {}): Source {

@@ -1,6 +1,7 @@
-// A round-trip .env parser/serializer. Unlike core's parseEnvFile (which returns a lossy Map),
-// this preserves comments, blank lines, key order, quote style, `export` prefixes, inline
-// comments, BOM and EOL — so surgical edits leave the rest of the file byte-identical.
+// A round-trip .env parser/serializer. Unlike the load-time parser in ./sources/envFile.js
+// (which returns a lossy record), this preserves comments, blank lines, key order, quote style,
+// `export` prefixes, inline comments, BOM and EOL — so surgical edits leave the rest of the file
+// byte-identical.
 
 export type QuoteStyle = '"' | "'" | "";
 

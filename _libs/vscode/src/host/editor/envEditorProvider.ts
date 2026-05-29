@@ -1,11 +1,11 @@
 import { dirname } from "node:path";
-import { isEnvelope } from "@confederation/core/index.js";
+import { getValue, isEnvelope, parseEnv } from "@confederation/core/index.js";
 import * as vscode from "vscode";
 import type { HostToWebview, WebviewToHost } from "../../shared/protocol.js";
 import type { ConfigHostManager } from "../configHost/manager.js";
 import { decryptValue, encryptForProject } from "../secrets.js";
 import { addEnvKey, removeEnvKey, saveDocument, setEnvValue } from "./documentWrites.js";
-import { getValue, parseEnv } from "./envText.js";
+import { encryptAllSecrets } from "./encryptAllSecrets.js";
 import { LandscapeService } from "./landscapeService.js";
 import { isEnvUri, readText, relativeId, toUri } from "./uris.js";
 import { renderWebviewHtml } from "./webviewHtml.js";
@@ -113,6 +113,9 @@ export class EnvEditorProvider implements vscode.CustomTextEditorProvider {
                     return;
                 case "addAllMissing":
                     await this.addAllMissing(folder, activeFileId, message.fileId);
+                    return;
+                case "encryptAllSecrets":
+                    await encryptAllSecrets(this.landscape, folder, message.fileId);
                     return;
                 case "encryptSecret": {
                     const uri = toUri(folder, message.fileId);

@@ -1,4 +1,5 @@
-// Operate on workspace-relative POSIX paths ("/"-separated), as produced by vscode.workspace.asRelativePath.
+// Operate on "/"-separated relative paths (e.g. workspace-relative POSIX paths as produced by
+// vscode.workspace.asRelativePath).
 
 export function dirOf(fileId: string): string {
     const idx = fileId.lastIndexOf("/");

@@ -10,6 +10,7 @@ import type { ConfigHostRequest, ConfigHostResponse } from "../protocol.js";
 interface CoreApi {
     inspectSchema: (schema: unknown) => unknown;
     validateValues: (schema: unknown, values: Record<string, string>) => unknown;
+    extractDefinition: (module: Record<string, unknown>) => Definition;
 }
 
 interface Definition {
@@ -58,33 +59,6 @@ async function load(): Promise<{ core: CoreApi; definition: Definition }> {
     const coreUrl = pathToFileURL(require.resolve("@confederation/core/index.js")).href;
     const core = (await import(coreUrl)) as unknown as CoreApi;
     const module = (await import(configUrl.href)) as Record<string, unknown>;
-    loaded = { core, definition: extractDefinition(module) };
+    loaded = { core, definition: core.extractDefinition(module) };
     return loaded;
-}
-
-function extractDefinition(module: Record<string, unknown>): Definition {
-    const candidate = module["default"] ?? module["config"] ?? module["definition"];
-    if (isDefinition(candidate)) {
-        return candidate;
-    }
-    if (isZodSchema(candidate)) {
-        return { schema: candidate };
-    }
-    if (isZodSchema(module["schema"])) {
-        return { schema: module["schema"] };
-    }
-    throw new Error(
-        "confederation.config must export a ConfigDefinition (default, `config`, or `definition`) with a `schema`, or a bare zod `schema` export.",
-    );
-}
-
-function isDefinition(value: unknown): value is Definition {
-    return typeof value === "object" && value !== null && isZodSchema((value as { schema?: unknown }).schema);
-}
-
-function isZodSchema(value: unknown): boolean {
-    if (typeof value !== "object" || value === null) {
-        return false;
-    }
-    return "_zod" in value || typeof (value as { safeParse?: unknown }).safeParse === "function";
 }

@@ -1,4 +1,4 @@
-import { isEnvelope, type LeafDescriptorPublic, type ValidationReport } from "@confederation/core/index.js";
+import { baseName, classify, isEnvelope, type LeafDescriptorPublic, type ValidationReport, type VarStatus } from "@confederation/core/index.js";
 import type {
     BadgeStatus,
     ControlType,
@@ -9,10 +9,7 @@ import type {
     MatrixRow,
     MatrixSection,
     VarRow,
-    VarStatus,
 } from "../../shared/protocol.js";
-import { baseName } from "../discovery/paths.js";
-import { classify } from "./classify.js";
 
 export interface FileInput {
     fileId: string;

@@ -1,4 +1,5 @@
-import type { FileView, VarRow, VarStatus } from "../../shared/protocol.js";
+import type { VarStatus } from "@confederation/core/index.js";
+import type { FileView, VarRow } from "../../shared/protocol.js";
 import { h } from "../dom.js";
 import { icon } from "../icons.js";
 import { type AppState, revealKey } from "../state.js";
@@ -66,6 +67,18 @@ function renderGridHeader(file: FileView): HTMLElement {
         h("button", { class: "btn", "data-action": "add-all", "data-file": file.fileId, title: "Add every missing/defaulted key to this file" }, [
             "Add all missing",
         ]),
+        file.rows.some((row) => row.status === "secret-plaintext")
+            ? h(
+                  "button",
+                  {
+                      class: "btn",
+                      "data-action": "encrypt-all-secrets",
+                      "data-file": file.fileId,
+                      title: "Encrypt every plaintext secret in this file",
+                  },
+                  ["Encrypt all secrets"],
+              )
+            : undefined,
         file.dirty ? h("button", { class: "btn", "data-action": "save", "data-file": file.fileId }, ["Save"]) : undefined,
         h("button", { class: "btn btn-ghost", "data-action": "open-text", "data-file": file.fileId, title: "Open as plain text" }, ["Plain text"]),
     ]);

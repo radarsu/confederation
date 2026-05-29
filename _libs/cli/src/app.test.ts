@@ -89,12 +89,21 @@ describe("app", () => {
         expect(fake.exitCode).toBeDefined();
     });
 
-    it("--help lists both subcommands", async () => {
+    it("--help lists the subcommands", async () => {
         const fake = fakeProcess();
         const { run } = await import("@stricli/core");
         await run(app, ["--help"], { process: fake });
         const combined = fake.stdoutText + fake.stderrText;
         expect(combined).toContain("keygen");
         expect(combined).toContain("encrypt");
+        expect(combined).toContain("validate");
+    });
+
+    it("validate exits cleanly when there is nothing to validate", async () => {
+        const fake = fakeProcess();
+        const { run } = await import("@stricli/core");
+        await run(app, ["validate"], { process: fake });
+        expect(fake.stdoutText).toContain("No .env files found.");
+        expect(fake.exitCode ?? 0).toBe(0);
     });
 });
