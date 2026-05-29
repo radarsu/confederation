@@ -21,11 +21,12 @@ jobs:
   publish-npm:
     needs: verify
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-        with:
-          registry-url: https://registry.npmjs.org
       - name: Set release version
         run: |
           RELEASE_VERSION="${GITHUB_REF_NAME#v}"
@@ -33,8 +34,6 @@ jobs:
           pnpm --dir _libs/cli version "$RELEASE_VERSION" --no-git-tag-version --allow-same-version
       - run: pnpm turbo run build --filter=@confederation/core --filter=@confederation/cli
       - name: Publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           pnpm --dir _libs/core publish --access public --no-git-checks
           pnpm --dir _libs/cli publish --access public --no-git-checks
