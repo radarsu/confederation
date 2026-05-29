@@ -482,6 +482,7 @@ dependencies = [
  "aes-gcm",
  "base64",
  "clap",
+ "indexmap",
  "ml-kem",
  "rand_core",
  "regex",
