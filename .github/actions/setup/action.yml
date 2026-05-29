@@ -1,0 +1,20 @@
+name: Setup
+description: Install pnpm, Node.js, and project dependencies
+
+inputs:
+  registry-url:
+    description: npm registry URL to configure for authenticated publishing
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24.14.0
+        cache: pnpm
+        registry-url: ${{ inputs.registry-url }}
+    - run: pnpm install --frozen-lockfile
+      shell: bash
