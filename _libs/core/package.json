@@ -1,6 +1,26 @@
 {
     "name": "@puristic/env",
     "version": "0.0.0",
+    "description": "Type-safe configuration loader: one real Zod schema drives runtime loading, validation, codegen, and post-quantum encrypted secrets — no DSL, no cloud.",
+    "keywords": [
+        "env",
+        "dotenv",
+        "dotenvx",
+        "varlock",
+        "environment-variables",
+        "env-vars",
+        "config",
+        "configuration",
+        "zod",
+        "schema",
+        "validation",
+        "type-safe",
+        "typescript",
+        "secrets",
+        "encryption",
+        "post-quantum",
+        "12-factor"
+    ],
     "license": "MIT",
     "type": "module",
     "repository": {
