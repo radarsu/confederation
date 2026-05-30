@@ -1,0 +1,19 @@
+{
+    "branches": ["main"],
+    "tagFormat": "v${version}",
+    "plugins": [
+        "@semantic-release/commit-analyzer",
+        "@semantic-release/release-notes-generator",
+        [
+            "@semantic-release/exec",
+            {
+                "prepareCmd": "pnpm --dir _libs/core version ${nextRelease.version} --no-git-tag-version --allow-same-version && pnpm --dir _libs/cli version ${nextRelease.version} --no-git-tag-version --allow-same-version && pnpm --dir _libs/vscode version ${nextRelease.version} --no-git-tag-version --allow-same-version && pnpm turbo run build --filter=@puristic/env --filter=@puristic/env-cli --filter=env",
+                "publishCmd": "pnpm --dir _libs/core publish --access public --no-git-checks && pnpm --dir _libs/cli publish --access public --no-git-checks && pnpm --dir _libs/vscode exec vsce publish --no-dependencies"
+            }
+        ],
+        [
+            "@semantic-release/github",
+            { "successComment": false, "failComment": false }
+        ]
+    ]
+}

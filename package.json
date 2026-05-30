@@ -19,8 +19,11 @@
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
+        "@semantic-release/exec": "catalog:",
+        "@semantic-release/github": "catalog:",
         "@types/node": "catalog:",
         "knip": "catalog:",
+        "semantic-release": "catalog:",
         "tslib": "catalog:",
         "turbo": "catalog:",
         "typescript": "catalog:"
