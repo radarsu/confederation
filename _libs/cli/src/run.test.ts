@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { resolveRunEnv, shellQuote, spawnEnv } from "./run.js";
 
 const fixtureConfig = fileURLToPath(new URL("../../vscode/fixtures/api/env.config.ts", import.meta.url));
-const savedPrivateKey = process.env["PURISTIC_PRIVATE_KEY"];
+const savedPrivateKey = process.env["PURENV_PRIVATE_KEY"];
 
 let dir: string;
 let keypair: { publicKey: string; privateKey: string };
@@ -16,15 +16,15 @@ beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "puristic-run-"));
     writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "run-test" }));
     keypair = generateKeypair();
-    process.env["PURISTIC_PRIVATE_KEY"] = keypair.privateKey;
+    process.env["PURENV_PRIVATE_KEY"] = keypair.privateKey;
 });
 
 afterEach(() => {
     rmSync(dir, { recursive: true, force: true });
     if (savedPrivateKey === undefined) {
-        delete process.env["PURISTIC_PRIVATE_KEY"];
+        delete process.env["PURENV_PRIVATE_KEY"];
     } else {
-        process.env["PURISTIC_PRIVATE_KEY"] = savedPrivateKey;
+        process.env["PURENV_PRIVATE_KEY"] = savedPrivateKey;
     }
 });
 

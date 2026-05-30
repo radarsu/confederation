@@ -19,13 +19,13 @@ const root = buildRouteMap({
         gen: genCommand,
         run: runCommand,
     },
-    docs: { brief: "Puristic CLI — validate config, generate types, and manage encrypted secrets" },
+    docs: { brief: "Puristic Env — validate config, generate types, and manage encrypted secrets" },
 });
 
 export const app = buildApplication(root, {
-    name: "puristic",
+    name: "purenv",
     versionInfo: { currentVersion: "0.0.0" },
     // `run -- <cmd>` relies on the argument escape sequence so the child command's flags are passed
-    // through verbatim instead of being parsed as puristic flags.
+    // through verbatim instead of being parsed as purenv flags.
     scanner: { allowArgumentEscapeSequence: true },
 });

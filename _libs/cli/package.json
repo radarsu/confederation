@@ -16,7 +16,7 @@
         "registry": "https://registry.npmjs.org/"
     },
     "bin": {
-        "puristic": "./dist/bin.js"
+        "purenv": "./dist/bin.js"
     },
     "exports": {
         "./bin.js": {

@@ -11,13 +11,13 @@ const savedEnv = { ...process.env };
 
 beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "puristic-resolve-"));
-    delete process.env["PURISTIC_PRIVATE_KEY"];
-    delete process.env["PURISTIC_PRIVATE_KEY_FILE"];
+    delete process.env["PURENV_PRIVATE_KEY"];
+    delete process.env["PURENV_PRIVATE_KEY_FILE"];
 });
 
 afterEach(() => {
     rmSync(dir, { recursive: true, force: true });
-    for (const k of ["PURISTIC_PRIVATE_KEY", "PURISTIC_PRIVATE_KEY_FILE"]) {
+    for (const k of ["PURENV_PRIVATE_KEY", "PURENV_PRIVATE_KEY_FILE"]) {
         if (savedEnv[k] !== undefined) {
             process.env[k] = savedEnv[k];
         } else {
@@ -32,7 +32,7 @@ function writeProject(name: string): string {
 }
 
 describe("resolvePublicKey", () => {
-    it("reads the public key from .config/puristic-pub.key relative to the project root", () => {
+    it("reads the public key from .config/purenv-pub.key relative to the project root", () => {
         const projectRoot = writeProject("test-project");
         mkdirSync(join(projectRoot, ".config"));
         const { publicKey } = generateKeypair();
@@ -43,7 +43,7 @@ describe("resolvePublicKey", () => {
 
     it("throws a helpful error if the public key file is missing", () => {
         const projectRoot = writeProject("test-project");
-        expect(() => resolvePublicKey(projectRoot)).toThrow(/puristic keygen/);
+        expect(() => resolvePublicKey(projectRoot)).toThrow(/purenv keygen/);
     });
 });
 
@@ -60,24 +60,24 @@ describe("resolvePrivateKey", () => {
         expect(resolvePrivateKey({ privateKeyPath: path })).toEqual(base64urlDecode(privateKey));
     });
 
-    it("reads PURISTIC_PRIVATE_KEY env var", () => {
+    it("reads PURENV_PRIVATE_KEY env var", () => {
         const { privateKey } = generateKeypair();
-        process.env["PURISTIC_PRIVATE_KEY"] = privateKey;
+        process.env["PURENV_PRIVATE_KEY"] = privateKey;
         expect(resolvePrivateKey()).toEqual(base64urlDecode(privateKey));
     });
 
-    it("reads PURISTIC_PRIVATE_KEY_FILE env var", () => {
+    it("reads PURENV_PRIVATE_KEY_FILE env var", () => {
         const { privateKey } = generateKeypair();
         const path = join(dir, "from-env.key");
         writeFileSync(path, privateKey);
-        process.env["PURISTIC_PRIVATE_KEY_FILE"] = path;
+        process.env["PURENV_PRIVATE_KEY_FILE"] = path;
         expect(resolvePrivateKey()).toEqual(base64urlDecode(privateKey));
     });
 
     it("inline privateKey wins over env vars", () => {
         const inline = generateKeypair();
         const env = generateKeypair();
-        process.env["PURISTIC_PRIVATE_KEY"] = env.privateKey;
+        process.env["PURENV_PRIVATE_KEY"] = env.privateKey;
         expect(resolvePrivateKey({ privateKey: inline.privateKey })).toEqual(base64urlDecode(inline.privateKey));
     });
 

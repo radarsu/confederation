@@ -58,8 +58,8 @@ native and nothing is written to disk until you save. The round-trip `.env` writ
 comments, blank lines, key order, quoting, and `export` prefixes.
 
 Editing a secret-marked key encrypts the value with the project's public key
-(`.config/puristic-pub.key`, resolved by walking up to the nearest `package.json`, mirroring
-core). If no key exists, run `puristic keygen`. Encryption needs only the public key; the
+(`.config/purenv-pub.key`, resolved by walking up to the nearest `package.json`, mirroring
+core). If no key exists, run `purenv keygen`. Encryption needs only the public key; the
 private key is never required to write. Revealing an encrypted value decrypts in the extension
 host (never the webview) and requires a configured private key.
 

@@ -9,7 +9,7 @@ import { encryptAll } from "./encryptAll.js";
 import { rotate } from "./rotate.js";
 
 const fixtureConfig = fileURLToPath(new URL("../../vscode/fixtures/api/env.config.ts", import.meta.url));
-const savedPrivateKey = process.env["PURISTIC_PRIVATE_KEY"];
+const savedPrivateKey = process.env["PURENV_PRIVATE_KEY"];
 
 let dir: string;
 let keypair: { publicKey: string; privateKey: string };
@@ -30,15 +30,15 @@ beforeEach(() => {
     keypair = generateKeypair();
     mkdirSync(join(dir, ".config"), { recursive: true });
     writeFileSync(join(dir, PUBLIC_KEY_PATH), `${keypair.publicKey}\n`);
-    process.env["PURISTIC_PRIVATE_KEY"] = keypair.privateKey;
+    process.env["PURENV_PRIVATE_KEY"] = keypair.privateKey;
 });
 
 afterEach(() => {
     rmSync(dir, { recursive: true, force: true });
     if (savedPrivateKey === undefined) {
-        delete process.env["PURISTIC_PRIVATE_KEY"];
+        delete process.env["PURENV_PRIVATE_KEY"];
     } else {
-        process.env["PURISTIC_PRIVATE_KEY"] = savedPrivateKey;
+        process.env["PURENV_PRIVATE_KEY"] = savedPrivateKey;
     }
 });
 

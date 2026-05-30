@@ -59,7 +59,7 @@ describe("app", () => {
         expect(fake.stdoutText).toContain("Public key written to");
         expect(fake.stdoutText).toContain("Project: app-smoke-test");
         expect(fake.stdoutText).toContain("Private key (do NOT commit");
-        expect(fake.stdoutText).toContain("PURISTIC_PRIVATE_KEY env var");
+        expect(fake.stdoutText).toContain("PURENV_PRIVATE_KEY env var");
     });
 
     it("encrypt prints an envelope that round-trips through decrypt()", async () => {

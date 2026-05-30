@@ -6,7 +6,7 @@ export function encryptForProject(plaintext: string, projectDir: string): string
     return encrypt(plaintext, resolvePublicKey(projectDir));
 }
 
-// Revealing a secret requires a configured private key (PURISTIC_PRIVATE_KEY / file / default path).
+// Revealing a secret requires a configured private key (PURENV_PRIVATE_KEY / file / default path).
 export function decryptValue(envelope: string): string {
     return decrypt(envelope, resolvePrivateKey());
 }

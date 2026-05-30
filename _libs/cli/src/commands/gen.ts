@@ -34,16 +34,16 @@ export const genCommand = buildCommand<GenFlags, []>({
                 optional: true,
             },
             out: { kind: "parsed", parse: String, brief: "Output directory (defaults to the config file's directory)", optional: true },
-            types: { kind: "boolean", brief: "Generate puristic-env.d.ts", default: false },
+            types: { kind: "boolean", brief: "Generate purenv.d.ts", default: false },
             example: { kind: "boolean", brief: "Generate .env.example", default: false },
-            json: { kind: "boolean", brief: "Generate puristic.schema.json", default: false },
-            force: { kind: "boolean", brief: "Overwrite files that are not puristic-generated artifacts", default: false },
+            json: { kind: "boolean", brief: "Generate purenv.schema.json", default: false },
+            force: { kind: "boolean", brief: "Overwrite files that are not purenv-generated artifacts", default: false },
         },
         positional: { kind: "tuple", parameters: [] },
     },
     docs: {
         brief: "Generate typed .d.ts, a .env.example, and JSON Schema from your config",
         fullDescription:
-            "Reads the env.config.* schema and writes a typed puristic-env.d.ts (a NodeJS.ProcessEnv augmentation plus a PuristicConfig interface) and a .env.example. Pass --json to also emit puristic.schema.json. With no artifact flags, generates types and the example. Output goes next to the config unless --out is given.",
+            "Reads the env.config.* schema and writes a typed purenv.d.ts (a NodeJS.ProcessEnv augmentation plus a PuristicConfig interface) and a .env.example. Pass --json to also emit purenv.schema.json. With no artifact flags, generates types and the example. Output goes next to the config unless --out is given.",
     },
 });

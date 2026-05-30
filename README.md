@@ -94,31 +94,31 @@ Edits go through VSCode's document model, so undo/redo/dirty/save are native and
 | Package | Description |
 | --- | --- |
 | [`@puristic/env`](_libs/core) | The configuration loader: merge `cliArgs`/`env`/`envFile` sources with precedence, validate against a Zod schema, introspect it (`inspectSchema` / `validateValues`), and encrypt/decrypt secrets. |
-| [`@puristic/env-cli`](_libs/cli) | The `puristic` CLI: `validate` (CI / pre-commit), `gen` (typed `.d.ts` / `.env.example` / JSON Schema), `keygen`, `encrypt` / `encrypt-all`, `rotate`, and `decrypt`. |
+| [`@puristic/env-cli`](_libs/cli) | The `purenv` CLI: `validate` (CI / pre-commit), `gen` (typed `.d.ts` / `.env.example` / JSON Schema), `keygen`, `encrypt` / `encrypt-all`, `rotate`, and `decrypt`. |
 | [`puristic`](_libs/vscode) | The VSCode extension ("Puristic Env Manager") — the schema-driven `.env` editor. See its [README](_libs/vscode/README.md) for settings and architecture. |
 
 ## Secrets & security
 
-Mark a field secret with `.meta({ secret: true })`. The editor (and `puristic encrypt`) encrypt its value **in place** with the project's **public** key (`.config/puristic-pub.key`, resolved by walking up to the nearest `package.json`), producing an `encrypted:v1:…` envelope using **ML-KEM-512** (a post-quantum KEM) + **AES-256-GCM**. Encryption needs only the public key, so anyone on the team can write secrets; revealing or loading them requires the **private** key.
+Mark a field secret with `.meta({ secret: true })`. The editor (and `purenv encrypt`) encrypt its value **in place** with the project's **public** key (`.config/purenv-pub.key`, resolved by walking up to the nearest `package.json`), producing an `encrypted:v1:…` envelope using **ML-KEM-512** (a post-quantum KEM) + **AES-256-GCM**. Encryption needs only the public key, so anyone on the team can write secrets; revealing or loading them requires the **private** key.
 
 Generate a keypair with:
 
 ```sh
-puristic keygen
+purenv keygen
 ```
 
-This is a **fully local** model — no accounts, no cloud, secrets committed (encrypted) alongside your code. The team shares one private key (distributed out of band); `puristic encrypt-all` seals every plaintext secret in a file, and `puristic rotate` mints a new keypair and re-encrypts everything — that's how you revoke access when someone leaves. The trade-off versus a cloud secret manager (Doppler, Infisical, 1Password, EnvKey) is no central audit log or per-member access control.
+This is a **fully local** model — no accounts, no cloud, secrets committed (encrypted) alongside your code. The team shares one private key (distributed out of band); `purenv encrypt-all` seals every plaintext secret in a file, and `purenv rotate` mints a new keypair and re-encrypts everything — that's how you revoke access when someone leaves. The trade-off versus a cloud secret manager (Doppler, Infisical, 1Password, EnvKey) is no central audit log or per-member access control.
 
 ## Command line
 
 ```sh
-puristic validate [files…]   # check .env files against the schema; non-zero exit on errors (CI)
-puristic gen                 # write puristic-env.d.ts + .env.example (+ --json for JSON Schema)
-puristic keygen              # generate the project keypair
-puristic encrypt <value>     # encrypt one value to the project public key
-puristic encrypt-all <file>  # encrypt every plaintext secret in a .env file
-puristic rotate <files…>     # re-key: new keypair, re-encrypt all secrets
-puristic decrypt <value>     # decrypt one envelope (needs the private key)
+purenv validate [files…]   # check .env files against the schema; non-zero exit on errors (CI)
+purenv gen                 # write purenv.d.ts + .env.example (+ --json for JSON Schema)
+purenv keygen              # generate the project keypair
+purenv encrypt <value>     # encrypt one value to the project public key
+purenv encrypt-all <file>  # encrypt every plaintext secret in a .env file
+purenv rotate <files…>     # re-key: new keypair, re-encrypt all secrets
+purenv decrypt <value>     # decrypt one envelope (needs the private key)
 ```
 
 `validate` runs the same check as the editor, so the schema gates CI and pre-commit hooks too; `gen` turns the one schema into typed `process.env` and an onboarding `.env.example`.
