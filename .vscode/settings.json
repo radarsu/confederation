@@ -31,7 +31,7 @@
         ".env.local": ".env.local.template",
 
         // * Node.js
-        "package.json": ".editorconfig, .gitignore, .npmrc, biome.json, pnpm-workspace.yaml, pnpm-lock.yaml, *.md, tsconfig.json, tsconfig.*.json, turbo.json, LICENSE, vitest.config.ts",
+        "package.json": ".editorconfig, .gitignore, .npmrc, biome.json, pnpm-workspace.yaml, pnpm-lock.yaml, *.md, tsconfig.json, tsconfig.*.json, turbo.json, LICENSE, vitest.config.ts, .releaserc.json",
 
         // * TypeScript
         "*.js": "$(capture).d.ts, $(capture).js.map, $(capture).d.ts.map"
