@@ -24,9 +24,12 @@ const state: AppState = {
 
 let revealSeq = 0;
 let refocusFilter = false;
+let editingValue: string | undefined;
 
 if (app !== null) {
     window.addEventListener("message", (event: MessageEvent<HostToWebview>) => onMessage(event.data));
+    window.addEventListener("keydown", onKeydown);
+    app.addEventListener("focusin", onFocusIn);
     app.addEventListener("click", onClick);
     app.addEventListener("change", onChange);
     app.addEventListener("input", onInput);
@@ -193,6 +196,57 @@ function onInput(event: Event): void {
     }
 }
 
+// Remember a value field's committed text on focus so Escape can restore it (see onKeydown).
+function onFocusIn(event: FocusEvent): void {
+    const target = event.target;
+    if (target instanceof HTMLInputElement && target.dataset["action"] === "set") {
+        editingValue = target.value;
+    }
+}
+
+function onKeydown(event: KeyboardEvent): void {
+    const target = event.target;
+    if (event.key === "Escape" && target instanceof HTMLInputElement && target.dataset["action"] === "set" && editingValue !== undefined) {
+        // Restore the committed value and blur: the value now matches focus time, so no change fires.
+        target.value = editingValue;
+        target.blur();
+        event.preventDefault();
+        return;
+    }
+    if (!(event.ctrlKey || event.metaKey)) {
+        return;
+    }
+    const key = event.key.toLowerCase();
+    if (key === "z" && !event.shiftKey) {
+        event.preventDefault();
+        send({ type: "undo" });
+    } else if (key === "y" || (key === "z" && event.shiftKey)) {
+        event.preventDefault();
+        send({ type: "redo" });
+    } else if (key === "s") {
+        event.preventDefault();
+        if (event.shiftKey || state.selectedFileId === undefined) {
+            send({ type: "saveAll" });
+        } else {
+            send({ type: "saveFile", fileId: state.selectedFileId });
+        }
+    } else if (key === "f") {
+        event.preventDefault();
+        focusFilter();
+    }
+}
+
+function focusFilter(): void {
+    if (app === null) {
+        return;
+    }
+    const input = app.querySelector<HTMLInputElement>('[data-action="filter"]');
+    if (input !== null) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+    }
+}
+
 function render(): void {
     if (app === null) {
         return;
@@ -209,11 +263,7 @@ function render(): void {
     }
     if (refocusFilter) {
         refocusFilter = false;
-        const input = app.querySelector<HTMLInputElement>('[data-action="filter"]');
-        if (input !== null) {
-            input.focus();
-            input.setSelectionRange(input.value.length, input.value.length);
-        }
+        focusFilter();
     }
 }
 

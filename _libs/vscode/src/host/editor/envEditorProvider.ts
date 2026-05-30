@@ -6,7 +6,8 @@ import type { ConfigHostManager } from "../configHost/manager.js";
 import { filterGitignored } from "../discovery/gitignore.js";
 import { decryptValue, encryptForProject } from "../secrets.js";
 import { copyFromPreset } from "./copyFromPreset.js";
-import { addEnvKey, removeEnvKey, saveDocument, setEnvValue } from "./documentWrites.js";
+import { addEnvKey, removeEnvKey, saveDocument, setEnvValue, writeText } from "./documentWrites.js";
+import { EditHistory } from "./editHistory.js";
 import { encryptAllSecrets } from "./encryptAllSecrets.js";
 import { LandscapeService } from "./landscapeService.js";
 import { isEnvUri, readText, relativeId, toUri } from "./uris.js";
@@ -37,6 +38,7 @@ export class EnvEditorProvider implements vscode.CustomTextEditorProvider {
         const post = (message: HostToWebview): void => {
             void webviewPanel.webview.postMessage(message);
         };
+        const history = new EditHistory(currentText, writeText);
 
         let timer: ReturnType<typeof setTimeout> | undefined;
         const refresh = (): void => {
@@ -76,7 +78,7 @@ export class EnvEditorProvider implements vscode.CustomTextEditorProvider {
 
         disposables.push(
             webviewPanel.webview.onDidReceiveMessage((message: WebviewToHost) => {
-                void this.handleMessage(folder, activeFileId, message, post);
+                void this.handleMessage(folder, activeFileId, history, message, post);
             }),
         );
 
@@ -93,6 +95,7 @@ export class EnvEditorProvider implements vscode.CustomTextEditorProvider {
     private async handleMessage(
         folder: vscode.WorkspaceFolder,
         activeFileId: string,
+        history: EditHistory,
         message: WebviewToHost,
         post: (message: HostToWebview) => void,
     ): Promise<void> {
@@ -104,33 +107,38 @@ export class EnvEditorProvider implements vscode.CustomTextEditorProvider {
                     return;
                 }
                 case "setValue":
-                    await setEnvValue(toUri(folder, message.fileId), message.envName, message.value);
+                    await withHistory(history, toUri(folder, message.fileId), (uri) => setEnvValue(uri, message.envName, message.value));
                     return;
                 case "addKey":
-                    await addEnvKey(toUri(folder, message.fileId), message.envName, message.value);
+                    await withHistory(history, toUri(folder, message.fileId), (uri) => addEnvKey(uri, message.envName, message.value));
                     return;
                 case "removeKey":
-                    await removeEnvKey(toUri(folder, message.fileId), message.envName);
+                    await withHistory(history, toUri(folder, message.fileId), (uri) => removeEnvKey(uri, message.envName));
                     return;
                 case "resetToDefault":
                     // Removing the override lets puristic apply the schema default at load time.
-                    await removeEnvKey(toUri(folder, message.fileId), message.envName);
+                    await withHistory(history, toUri(folder, message.fileId), (uri) => removeEnvKey(uri, message.envName));
                     return;
                 case "addAllMissing":
-                    await this.addAllMissing(folder, activeFileId, message.fileId);
+                    await withHistory(history, toUri(folder, message.fileId), () => this.addAllMissing(folder, activeFileId, message.fileId));
                     return;
                 case "copyFromPreset":
-                    await copyFromPreset(folder, message.fileId);
+                    await withHistory(history, toUri(folder, message.fileId), () => copyFromPreset(folder, message.fileId));
                     return;
                 case "encryptAllSecrets":
-                    await encryptAllSecrets(this.landscape, folder, message.fileId);
+                    await withHistory(history, toUri(folder, message.fileId), () => encryptAllSecrets(this.landscape, folder, message.fileId));
                     return;
-                case "encryptSecret": {
-                    const uri = toUri(folder, message.fileId);
-                    const cipher = encryptForProject(message.plaintext, dirname(uri.fsPath));
-                    await setEnvValue(uri, message.envName, cipher);
+                case "encryptSecret":
+                    await withHistory(history, toUri(folder, message.fileId), (uri) =>
+                        setEnvValue(uri, message.envName, encryptForProject(message.plaintext, dirname(uri.fsPath))),
+                    );
                     return;
-                }
+                case "undo":
+                    await history.undo();
+                    return;
+                case "redo":
+                    await history.redo();
+                    return;
                 case "revealSecret":
                     await this.revealSecret(folder, message.requestId, message.fileId, message.envName, post);
                     return;
@@ -187,5 +195,21 @@ export class EnvEditorProvider implements vscode.CustomTextEditorProvider {
         } catch (cause) {
             post({ type: "revealSecretResult", requestId, fileId, envName, ok: false, message: (cause as Error).message });
         }
+    }
+}
+
+async function currentText(uri: vscode.Uri): Promise<string> {
+    const document = await vscode.workspace.openTextDocument(uri);
+    return document.getText();
+}
+
+// Snapshot a file's text around a single mutating action so one webview message = one undo step,
+// even when the action writes several entries (e.g. "Add all missing").
+async function withHistory(history: EditHistory, uri: vscode.Uri, run: (uri: vscode.Uri) => Promise<unknown>): Promise<void> {
+    const before = await currentText(uri);
+    await run(uri);
+    const after = await currentText(uri);
+    if (after !== before) {
+        history.record({ uri, before, after });
     }
 }

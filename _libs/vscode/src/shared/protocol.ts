@@ -101,4 +101,6 @@ export type WebviewToHost =
     | { type: "saveFile"; fileId: string }
     | { type: "saveAll" }
     | { type: "openAsPlainText"; fileId: string }
-    | { type: "encryptAllSecrets"; fileId: string };
+    | { type: "encryptAllSecrets"; fileId: string }
+    | { type: "undo" }
+    | { type: "redo" };

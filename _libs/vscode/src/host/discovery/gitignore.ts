@@ -51,6 +51,9 @@ function checkIgnore(cwd: string, paths: string[]): Promise<Set<string>> {
         const child = execFile("git", ["check-ignore", "--stdin", "-z"], { cwd }, (_error, stdout) => {
             resolve(new Set(stdout.split("\0").filter((path) => path.length > 0)));
         });
+        // git exits immediately (code 128) outside a repo, closing stdin before we finish writing —
+        // ignore the resulting EPIPE; the empty stdout above already yields the no-filter fallback.
+        child.stdin?.on("error", () => {});
         child.stdin?.end(paths.join("\0"));
     });
 }
