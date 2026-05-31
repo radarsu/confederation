@@ -1,23 +1,23 @@
 # puristic
 
-A VSCode extension that turns `.env` files into a managed, validated UI driven by your
+A VSCode extension that edits `.env` files through a typed, validated UI, driven by your
 [`@puristic/env`](../core) configuration schema.
 
-When a workspace uses puristic, opening any `.env` file replaces the raw text editor with a
-management panel: a **sidebar** of every directory that contains `.env` files (with aggregate
-status badges), a **key-value grid** grouped by your nested schema, and a cross-service
-**overview matrix**. Missing, invalid, unknown, and secret variables are signalled inline, with
-full read/write editing and one-click secret encryption.
+Open any `.env` file in a puristic workspace and the raw text editor is replaced by a
+management panel with three parts: a **sidebar** listing every directory that contains `.env`
+files (each with an aggregate status badge), a **key-value grid** grouped by your nested schema,
+and a cross-service **overview matrix**. Missing, invalid, unknown, and secret variables are
+flagged inline, and you can edit values or encrypt a secret in one click.
 
 ## How it knows your variables
 
-The extension never guesses. It evaluates a **convention file** — `env.config.ts`
-(`.mts`/`.cts`/`.js`/`.mjs`/`.cjs`) at a service/package root — in a short-lived Node 24
-subprocess and asks `@puristic/env` (`inspectSchema` / `validateValues`) for the exact set
-of expected variables, their types, defaults, secret flags, and live validation.
+The extension never guesses. It finds a **convention file** — `env.config.ts`
+(`.mts`/`.cts`/`.js`/`.mjs`/`.cjs`) at a service or package root — and runs it in a short-lived
+Node 24 subprocess. From `@puristic/env` (`inspectSchema` / `validateValues`) it reads the exact
+set of expected variables: their types, defaults, secret flags, and live validation.
 
-The config file must export the **raw `ConfigDefinition`** (schema + sources) — not
-`defineConfig(...)`, which loads immediately and would fail on encrypted secrets:
+The config file must export the **raw `ConfigDefinition`** (schema + sources), not the result
+of `loadConfig(...)`. `loadConfig` loads immediately, so it would fail on encrypted secrets:
 
 ```ts
 // env.config.ts
@@ -34,10 +34,10 @@ export default {
 } satisfies ConfigDefinition<z.ZodType>;
 ```
 
-A `default`, `config`, `definition`, or bare `schema` export is accepted. Each `.env` directory is
-associated with its **nearest ancestor** `env.config.*`.
+A `default`, `config`, `definition`, or bare `schema` export all work. Each `.env` directory is
+matched to its **nearest ancestor** `env.config.*`.
 
-Schema path → env var follows core's rule: `["server","httpsPort"]` → `SERVER_HTTPS_PORT`.
+Schema paths map to env var names: `["server","httpsPort"]` → `SERVER_HTTPS_PORT`.
 
 ## Status model
 
@@ -53,15 +53,14 @@ Schema path → env var follows core's rule: `["server","httpsPort"]` → `SERVE
 
 ## Editing & secrets
 
-All edits go through the VSCode document model (`WorkspaceEdit`), so undo/redo/dirty/save are
-native and nothing is written to disk until you save. The round-trip `.env` writer preserves
-comments, blank lines, key order, quoting, and `export` prefixes.
+All edits go through the VSCode document model (`WorkspaceEdit`), so undo, redo, dirty state, and
+save are native and nothing is written to disk until you save. The round-trip `.env` writer
+preserves comments, blank lines, key order, quoting, and `export` prefixes.
 
 Editing a secret-marked key encrypts the value with the project's public key
-(`.config/purenv-pub.key`, resolved by walking up to the nearest `package.json`, mirroring
-core). If no key exists, run `purenv keygen`. Encryption needs only the public key; the
-private key is never required to write. Revealing an encrypted value decrypts in the extension
-host (never the webview) and requires a configured private key.
+(`.config/purenv-pub.key`, found by walking up to the nearest `package.json`, like core). If no
+key exists yet, run `purenv keygen`. Writing a secret needs only the public key. Revealing one
+decrypts in the extension host, never the webview, and needs a configured private key.
 
 ## Build & develop
 
@@ -88,8 +87,8 @@ launch an Extension Development Host on `fixtures/`, then open `fixtures/api/.en
 
 - **Pure logic** (`src/host/{detectPuristic,discovery,editor/envText,model}`) — no `vscode`
   import, unit-tested with vitest.
-- **Config-host subprocess** (`src/host/configHost`) — forked Node 24 over IPC; user code runs
-  only here, never the extension host.
+- **Config-host subprocess** (`src/host/configHost`) — a forked Node 24 process over IPC. Your
+  config code runs only here, never in the extension host.
 - **Editor** (`src/host/editor/envEditorProvider.ts`) — a `CustomTextEditorProvider` that builds
   the whole-project landscape and wires the webview.
 - **Webview** (`src/webview`) — vanilla TS + esbuild, themed entirely with `--vscode-*` variables

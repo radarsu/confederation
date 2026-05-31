@@ -1,7 +1,7 @@
 {
     "name": "@puristic/env-cli",
     "version": "0.0.0",
-    "description": "The `purenv` CLI: validate .env files against a Zod schema, generate typed .d.ts / .env.example / JSON Schema, and manage post-quantum encrypted secrets.",
+    "description": "The purenv CLI: validate .env files, generate typed .d.ts / .env.example / JSON Schema, and manage post-quantum encrypted secrets — all from one Zod schema.",
     "keywords": [
         "env",
         "dotenv",

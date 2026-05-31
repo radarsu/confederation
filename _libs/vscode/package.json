@@ -4,7 +4,7 @@
     "license": "MIT",
     "type": "module",
     "displayName": "Puristic Env Manager",
-    "description": "Manage .env files against env.config schemas with validation, encryption, and a cross-service overview.",
+    "description": "Edit .env files in a typed, validated UI driven by your env.config schema — with inline status, secret encryption, and a cross-service overview.",
     "publisher": "radarsu",
     "icon": "icon.png",
     "repository": {

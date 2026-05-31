@@ -1,7 +1,7 @@
 {
     "name": "@puristic/env",
     "version": "0.0.0",
-    "description": "Type-safe configuration loader: one real Zod schema drives runtime loading, validation, codegen, and post-quantum encrypted secrets — no DSL, no cloud.",
+    "description": "A config loader built on one Zod schema — the same schema drives CI validation, codegen, and post-quantum encrypted secrets. No DSL, no cloud.",
     "keywords": [
         "env",
         "dotenv",

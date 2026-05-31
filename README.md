@@ -1,21 +1,21 @@
 # puristic
 
-**Type-safe configuration whose schema also powers a validated, typed `.env` manager for VSCode.**
+**One TypeScript config schema, reused everywhere — to load config in your app, validate `.env` files in CI, and edit them in a typed VSCode UI.**
 
-> **Status:** early / WIP — the package surface is still being designed, but the core loader and the VSCode extension both work today.
+> **Status:** early / WIP. The API is still settling, but the loader and the VSCode extension both work today.
 
-puristic is two things that share **one source of truth**:
+puristic is two tools built on **one source of truth** — your config schema:
 
-1. **[`@puristic/env`](_libs/core)** — a Zod-schema configuration loader that merges CLI flags, environment variables, and `.env` files with predictable precedence, validates them, and encrypts secrets.
-2. **the [VSCode extension](_libs/vscode)** ("Puristic Env Manager") — which reads *that same schema* and replaces the raw `.env` text editor with a typed, validated management UI: missing, invalid, unknown, and secret variables are flagged inline, with full editing and one-click secret encryption.
+1. **[`@puristic/env`](_libs/core)** — the config loader. It merges CLI flags, environment variables, and `.env` files (in that order of precedence), validates them against a Zod schema, and decrypts secrets.
+2. **the [VSCode extension](_libs/vscode)** ("Puristic Env Manager") — reads that same schema and replaces the raw `.env` text editor with a typed, validated UI. Missing, invalid, unknown, and secret variables are flagged inline, and you can edit values or encrypt secrets in one click.
 
-Because the editor and your running app load the same `ConfigDefinition`, they can never drift.
+Your app and the editor load the same `ConfigDefinition`, so they can't drift.
 
 ## Why it's different
 
-puristic reads your **real TypeScript configuration** as the single source of truth. A short-lived Node 24 subprocess evaluates your actual `env.config.ts` (via native TypeScript type-stripping) and asks `@puristic/env` for the live Zod schema — types, defaults, constraints, enums, and secret flags. That **one definition** then drives everything: runtime config loading in your app, `purenv validate` in CI, generated types and `.env.example`, **and** a visual editor in VSCode. Because they all read the same schema, they can never drift — there is no separate DSL to keep in sync and no cloud API to call.
+**One schema, used everywhere.** You write your config as a normal Zod schema in `env.config.ts`. puristic reads the schema straight from that file — types, defaults, and secret flags included — by running it in a short-lived Node 24 subprocess (via native TypeScript type-stripping). That one definition then drives everything: config loading in your app, `purenv validate` in CI, generated types and `.env.example`, and the VSCode editor. There's no separate DSL to keep in sync and no cloud API to call, so nothing can drift.
 
-The payoff is a **typed `.env` editor**. Open any `.env` in VSCode and the **Puristic Env Manager** replaces the raw text editor with type-aware inputs (number / url / enum / bool) grouped by your nested schema, an inline OK / Missing / Invalid / Unknown status on every variable, and a **cross-service matrix** that shows — across every `.env` in a monorepo — which variables are present, missing, or invalid per service.
+**A typed `.env` editor.** Open any `.env` in VSCode and the **Puristic Env Manager** replaces raw text with type-aware inputs (number, url, enum, bool), grouped by your nested schema. Every variable gets an inline OK / Missing / Invalid / Unknown status. A **cross-service matrix** shows which variables are present, missing, or invalid in each `.env` across a monorepo.
 
 | Capability | puristic | Syntax exts (DotENV) | GUI editors (Visual Env) | Schema tools (varlock) | Cloud mgrs (Doppler/Infisical) |
 |---|:--:|:--:|:--:|:--:|:--:|
@@ -26,17 +26,17 @@ The payoff is a **typed `.env` editor**. Open any `.env` in VSCode and the **Pur
 
 <sub>✅ yes · ◐ partial (varlock's schema is an in-file DSL; Visual Env infers types heuristically) · ❌ no</sub>
 
-Local, in-file secret encryption is a deliberate bonus rather than the headline — see [Secrets & security](#secrets--security).
+Local, in-file secret encryption is a bonus, not the headline — see [Secrets & security](#secrets--security).
 
 ### Compared to varlock
 
-[varlock](https://varlock.dev) (by dmno-dev) is the closest tool in spirit — it also brings types, validation, and secrets to `.env`. It attaches a schema *to the `.env` file itself* via the **`@env-spec` DSL**: JSDoc-style decorators (`@type`, `@required`, `@sensitive`) written in comments. On top of that it ships AI-safe schemas (agents read the schema, never the secret values), leak scanning (`varlock scan` plus git hooks), secret-manager plugins (1Password, AWS, Azure, GCP, Infisical, Bitwarden), and device-bound encryption backed by platform hardware (Secure Enclave / TPM); native in-file shared-key encryption is still on its roadmap. It is a polished, batteries-included tool, and if you want decorators-in-`.env` plus hosted secret backends it is an excellent choice.
+[varlock](https://varlock.dev) (by dmno-dev) is the closest tool in spirit: it also brings types, validation, and secrets to `.env`. The difference is where the schema lives. varlock attaches it to the `.env` file itself, through the **`@env-spec` DSL** — JSDoc-style decorators (`@type`, `@required`, `@sensitive`) written in comments. It's a polished, batteries-included tool: AI-safe schemas (agents read the schema, never the values), leak scanning (`varlock scan` plus git hooks), secret-manager plugins (1Password, AWS, Azure, GCP, Infisical, Bitwarden), and device-bound encryption backed by platform hardware (Secure Enclave / TPM). Native in-file shared-key encryption is on its roadmap. If you want decorators-in-`.env` plus hosted secret backends, varlock is an excellent choice.
 
-puristic's bet is different: the schema is **real Zod TypeScript that your app already imports at runtime** — not a separate DSL to learn or a parallel file to maintain — and that same definition also powers the visual typed editor and committed, post-quantum-encrypted in-file secrets, with no cloud or secret-manager dependency. If you want your TypeScript schema to *be* the config contract everywhere — app, CI, codegen, and editor — that is puristic.
+puristic takes a different approach. The schema is plain Zod TypeScript that your app already imports at runtime, not a DSL to learn or a parallel file to maintain. That same definition also powers the typed editor and committed, post-quantum-encrypted secrets, with no cloud or secret-manager dependency. Choose puristic if you want your TypeScript schema to *be* the config contract everywhere: app, CI, codegen, and editor.
 
 ## How it works
 
-Define your configuration once. Export the **raw `ConfigDefinition`** (schema + sources) — not `loadConfig(...)`, which loads immediately and would fail on encrypted secrets without a key:
+Define your configuration once. Export the **raw `ConfigDefinition`** (schema + sources), not the result of `loadConfig(...)`. `loadConfig` loads immediately, so it would fail on encrypted secrets without a key:
 
 ```ts
 // env.config.ts — the single source of truth
@@ -68,7 +68,7 @@ const config = createConfig(definition).load();
 config.server.port; // number
 ```
 
-Nested schema paths map to env var names by core's rule — `["server", "httpsPort"]` → `SERVER_HTTPS_PORT` (and `--server-https-port` for CLI flags). So the config above expects:
+Nested schema paths map to env var names: `["server", "httpsPort"]` → `SERVER_HTTPS_PORT` (and `--server-https-port` for CLI flags). So the config above expects:
 
 ```sh
 # .env
@@ -78,7 +78,7 @@ SERVER_HOST=0.0.0.0
 DATABASE_URL=encrypted:v1:…        # secret — encrypted in place
 ```
 
-Open that `.env` in VSCode and the **Puristic Env Manager** takes over: a sidebar of every directory with `.env` files (with aggregate status badges), a key-value grid grouped by your nested schema with type-aware inputs, and a cross-service overview matrix. Each variable shows its status:
+Open that `.env` in VSCode and the **Puristic Env Manager** takes over. It shows a sidebar of every directory with `.env` files (each with an aggregate status badge), a key-value grid grouped by your nested schema with type-aware inputs, and a cross-service overview matrix. Each variable shows its status:
 
 | Status | Meaning |
 | --- | --- |
@@ -96,13 +96,13 @@ Edits go through VSCode's document model, so undo/redo/dirty/save are native and
 
 | Package | Description |
 | --- | --- |
-| [`@puristic/env`](_libs/core) | The configuration loader: merge `cliArgs`/`env`/`envFile` sources with precedence, validate against a Zod schema, introspect it (`inspectSchema` / `validateValues`), and encrypt/decrypt secrets. |
-| [`@puristic/env-cli`](_libs/cli) | The `purenv` CLI: `validate` (CI / pre-commit), `gen` (typed `.d.ts` / `.env.example` / JSON Schema), `keygen`, `encrypt` / `encrypt-all`, `rotate`, and `decrypt`. |
-| [`puristic`](_libs/vscode) | The VSCode extension ("Puristic Env Manager") — the schema-driven `.env` editor. See its [README](_libs/vscode/README.md) for settings and architecture. |
+| [`@puristic/env`](_libs/core) | The config loader. Merges `cliArgs` / `env` / `envFile` sources, validates against a Zod schema, introspects it (`inspectSchema` / `validateValues`), and encrypts/decrypts secrets. |
+| [`@puristic/env-cli`](_libs/cli) | The `purenv` command line: `validate` (CI / pre-commit), `gen` (typed `.d.ts` / `.env.example` / JSON Schema), `keygen`, `encrypt` / `encrypt-all`, `rotate`, and `decrypt`. |
+| [`puristic`](_libs/vscode) | The VSCode extension ("Puristic Env Manager"), the schema-driven `.env` editor. See its [README](_libs/vscode/README.md) for settings and architecture. |
 
 ## Secrets & security
 
-Mark a field secret with `.meta({ secret: true })`. The editor (and `purenv encrypt`) encrypt its value **in place** with the project's **public** key (`.config/purenv-pub.key`, resolved by walking up to the nearest `package.json`), producing an `encrypted:v1:…` envelope using **ML-KEM-512** (a post-quantum KEM) + **AES-256-GCM**. Encryption needs only the public key, so anyone on the team can write secrets; revealing or loading them requires the **private** key.
+Mark a field secret with `.meta({ secret: true })`. The editor (and `purenv encrypt`) encrypt its value **in place**, using the project's **public** key (`.config/purenv-pub.key`, found by walking up to the nearest `package.json`). The result is an `encrypted:v1:…` envelope sealed with **ML-KEM-512** (a post-quantum KEM) and **AES-256-GCM**. Writing a secret needs only the public key, so anyone on the team can do it. Revealing or loading a secret needs the **private** key.
 
 Generate a keypair with:
 
@@ -110,7 +110,7 @@ Generate a keypair with:
 purenv keygen
 ```
 
-Committing a public key and encrypting in place was popularized by [dotenvx](https://dotenvx.com); puristic's twist is that the cipher is **post-quantum** and the secret flags come from the same schema that validates everything else. This is a **fully local** model — no accounts, no cloud, secrets committed (encrypted) alongside your code. The team shares one private key (distributed out of band); `purenv encrypt-all` seals every plaintext secret in a file, and `purenv rotate` mints a new keypair and re-encrypts everything — that's how you revoke access when someone leaves. The trade-off versus a cloud secret manager (Doppler, Infisical, 1Password, EnvKey) is no central audit log or per-member access control.
+Committing a public key and encrypting in place was popularized by [dotenvx](https://dotenvx.com). puristic's twist: the cipher is **post-quantum**, and the secret flags come from the same schema that validates everything else. The model is **fully local** — no accounts, no cloud, with secrets committed (encrypted) next to your code. The team shares one private key, distributed out of band. Run `purenv encrypt-all` to seal every plaintext secret in a file. To revoke access when someone leaves, run `purenv rotate`: it mints a new keypair and re-encrypts everything. The trade-off versus a cloud secret manager (Doppler, Infisical, 1Password, EnvKey) is no central audit log and no per-member access control.
 
 ## Command line
 
@@ -124,7 +124,7 @@ purenv rotate <files…>     # re-key: new keypair, re-encrypt all secrets
 purenv decrypt <value>     # decrypt one envelope (needs the private key)
 ```
 
-`validate` runs the same check as the editor, so the schema gates CI and pre-commit hooks too; `gen` turns the one schema into typed `process.env` and an onboarding `.env.example`.
+`validate` runs the same check as the editor, so one schema gates CI and pre-commit hooks too. `gen` turns that schema into typed `process.env` and an onboarding `.env.example`.
 
 ## Getting started
 
@@ -135,9 +135,9 @@ pnpm test
 pnpm libs:watch       # incremental TypeScript build in watch mode
 ```
 
-To run the extension from source, open [`_libs/vscode`](_libs/vscode) and press <kbd>F5</kbd> (launch configuration **Run Env Manager (fixtures)**) to start an Extension Development Host on the bundled `fixtures/`, then open `fixtures/api/.env`.
+To run the extension from source, open [`_libs/vscode`](_libs/vscode) and press <kbd>F5</kbd> (launch configuration **Run Env Manager (fixtures)**). That starts an Extension Development Host on the bundled `fixtures/`; open `fixtures/api/.env` there.
 
-> Requires **Node 24** (the extension evaluates your config with native TypeScript type-stripping; set `puristic.nodePath` if your editor's runtime isn't Node 24+).
+> Requires **Node 24**. The extension evaluates your config with native TypeScript type-stripping, so set `puristic.nodePath` if your editor's runtime isn't Node 24+.
 
 ## License
 
